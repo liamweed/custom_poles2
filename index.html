@@ -487,6 +487,41 @@ body {
   .btn.make-ring:hover  { background: var(--mid); color: #fff; }
 }
 
+/* ── Color slots (slot mode) ── */
+.slot-row {
+  display: flex; align-items: stretch; gap: 6px;
+  overflow-x: auto; overflow-y: hidden;
+  padding: 7px 10px; flex-shrink: 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.slot-row::-webkit-scrollbar { display: none; }
+.slot-chip {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: 2px solid transparent; border-radius: 8px;
+  padding: 4px 8px; cursor: pointer; flex-shrink: 0; min-width: 60px;
+  transition: border-color 0.12s, background 0.12s, transform 0.1s; touch-action: manipulation;
+}
+.slot-chip:active { transform: scale(0.95); }
+@media (hover:hover) { .slot-chip:hover { background: rgba(0,0,0,0.04); } }
+.slot-chip.active { border-color: var(--ink); background: rgba(0,0,0,0.04); }
+.slot-chip-sw {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.12);
+}
+.slot-chip-lbl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.54rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--mid); text-align: center; line-height: 1.1; max-width: 64px;
+}
+.slot-chip.active .slot-chip-lbl { color: var(--ink); }
+/* Active-slot rings: no box — a slight size bump + a soft breathing glow */
+.ring-svg.slot-hl { transform: scaleX(1.08); animation: slotGlow 1.5s ease-in-out infinite; }
+@keyframes slotGlow {
+  0%,100% { filter: drop-shadow(0 0 0 rgba(61,107,74,0)); }
+  50%     { filter: drop-shadow(0 0 4px rgba(61,107,74,0.6)); }
+}
+
 /* Color picker scroll wrap — normal block on mobile, fills remaining space on desktop */
 .color-picker-scroll-wrap { flex-shrink: 0; }
 @media (min-width:740px) {
@@ -494,6 +529,31 @@ body {
     flex: 1; min-height: 0; overflow-y: auto;
     display: flex; flex-direction: column;
   }
+}
+
+/* Full palette in play (not constrained to a 6-color palette): the swatches grow to
+   fill most of the panel. Auto-fill grid so adding more colors later just reflows. */
+.color-picker-scroll-wrap.all-colors {
+  flex: 1; min-height: 0; overflow-y: auto;
+}
+.color-picker-scroll-wrap.all-colors .color-picker-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);   /* 4 across → even rows (12 colors = 3×4) */
+  align-content: space-evenly;
+  justify-items: center;
+  gap: 12px 8px;
+  padding: 16px 12px;
+  min-height: 100%;
+  overflow: visible;
+  border-bottom: none;
+}
+.color-picker-scroll-wrap.all-colors .cpick-circle {
+  width: clamp(44px, 13vw, 60px);
+  height: clamp(44px, 13vw, 60px);
+}
+.color-picker-scroll-wrap.all-colors .cpick-name {
+  font-size: 0.72rem;
+  max-width: 72px;
 }
 
 /* Tools block — normal flow on mobile */
@@ -510,6 +570,14 @@ body {
 @media (min-width:740px) {
   .scratch-tools { grid-template-columns: repeat(4,1fr); padding: 8px 16px 6px; }
 }
+/* Main toolbar carries the "More tools" toggle inline.
+   Mobile: 2×2 tools with the toggle spanning a full-width row beneath.
+   Desktop: all five share a single row. */
+.scratch-tools.main-tools .more-tools-toggle { grid-column: 1 / -1; }
+@media (min-width:740px) {
+  .scratch-tools.main-tools { grid-template-columns: repeat(5,1fr); }
+  .scratch-tools.main-tools .more-tools-toggle { grid-column: auto; }
+}
 .btn.tool {
   min-height: 34px; padding: 0 8px; font-size: 0.68rem;
   border-width: 1.5px; touch-action: manipulation;
@@ -518,13 +586,9 @@ body {
 @media (hover:hover) { .btn.tool:hover { background: var(--ink); color: #fff; } }
 .btn.tool:disabled  { opacity: 0.28; cursor: not-allowed; }
 .btn.tool:disabled:active { background: transparent; color: var(--ink); }
-
-/* ── Symmetry actions ── */
-.scratch-actions {
-  display: flex; gap: 5px; padding: 4px 10px;
-  border-top: 1px solid rgba(0,0,0,0.06); flex-shrink: 0;
-  justify-content: flex-end; align-items: center; flex-wrap: wrap;
-}
+/* "All One" pending — waiting for a color pick to fill every ring */
+.btn.tool.pending { background: var(--accent); border-color: var(--accent); color:#fff; animation: aoPulse 1s ease-in-out infinite; }
+@keyframes aoPulse { 0%,100%{ opacity:1; } 50%{ opacity:0.55; } }
 
 /* ── Action bar (Order / Save / Share) ── */
 .cust-action-bar {
@@ -557,9 +621,9 @@ body {
 }
 .mystery-h1 {
   font-family: 'Anton', sans-serif;
-  font-size: clamp(2rem,7vw,4.5rem);
+  font-size: clamp(1.3rem,4vw,2.4rem);
   letter-spacing: 0.04em; text-transform: uppercase;
-  line-height: 0.92; margin-bottom: 12px;
+  line-height: 1.05; margin-bottom: 36px;
 }
 .mystery-p {
   font-family: 'Barlow Condensed', sans-serif;
@@ -833,6 +897,9 @@ body {
           <div class="active-color-hint"   id="active-hint">then tap or drag rings</div>
         </div>
 
+        <!-- 1b. Color slots (slot mode only) -->
+        <div class="slot-row" id="slot-row" style="display:none"></div>
+
         <!-- 2. Color picker — fills remaining space -->
         <div class="color-picker-scroll-wrap">
           <div class="color-picker-row" id="color-picker-row"></div>
@@ -841,6 +908,7 @@ body {
         <!-- 3. Constraint toggles -->
         <div class="ctrl-toggles" id="ctrl-toggles" style="display:none">
           <button class="toggle-pill" id="unlock-colors-btn" onclick="toggleUnlockColors()">Use all colors</button>
+          <button class="toggle-pill" id="edit-mode-btn" onclick="toggleEditMode()" style="display:none">Edit without pattern</button>
         </div>
 
         <!-- 4. Ring info -->
@@ -849,21 +917,19 @@ body {
           <div class="ring-nav-row">
             <button class="ring-nav-btn" id="ring-prev-btn" onclick="navRing(-1)" disabled>‹</button>
             <button class="ring-nav-btn" id="ring-next-btn" onclick="navRing(1)"  disabled>›</button>
-            <button class="btn sm type-toggle make-ledge" id="ring-type-btn" onclick="toggleRingSize()" style="margin-left:4px;">→ Make Ledge</button>
+            <button class="btn sm type-toggle make-ledge" id="ring-type-btn" onclick="toggleRingSize()" style="margin-left:4px;">Make Ledge</button>
           </div>
         </div>
 
         <!-- 5. Tools (pinned to bottom of ctrl-mode) -->
         <div class="tools-block">
-          <!-- Main toolbar — always visible -->
-          <div class="scratch-tools">
+          <!-- Main toolbar — always visible (More tools toggle sits inline) -->
+          <div class="scratch-tools main-tools">
             <button class="btn tool ghost" id="undo-btn" onclick="doUndo()" disabled>↺ Undo</button>
-            <button class="btn tool ghost" onclick="doAllOne()">● All One</button>
+            <button class="btn tool ghost" id="all-one-btn" onclick="doAllOne()">● All One</button>
             <button class="btn tool ghost" onclick="doMirror()">Mirror P1→P2</button>
             <button class="btn tool ghost" onclick="doReset()">Reset</button>
-          </div>
-          <div class="scratch-actions">
-            <button class="btn sm ghost" id="more-tools-btn" onclick="toggleMoreTools()">More tools ▾</button>
+            <button class="btn tool ghost more-tools-toggle" id="more-tools-btn" onclick="toggleMoreTools()">More tools ▾</button>
           </div>
 
           <!-- Secondary toolbar — hidden until "More tools" tapped -->
@@ -906,11 +972,9 @@ body {
     <button class="btn sm ghost" onclick="goTo('land')">← Back</button>
   </nav>
   <div class="mystery-body">
-    <div style="font-size:3rem;margin-bottom:12px;">🎲</div>
-    <div class="mystery-h1">Let us choose<br>for you.</div>
-    <p class="mystery-p">Skip the designing — we hand-pick an exclusive combination. Completely unique to your order.</p>
+    <div class="mystery-h1">Let us hand pick a unique design for your twIIgs poles.</div>
     <div class="mystery-ctas">
-      <button class="btn lg accent" onclick="doOrder()">Order My Mystery Build →</button>
+      <button class="btn lg accent" onclick="doOrder()">Order a mystery design →</button>
       <button class="myst-skip" onclick="goTo('land')">Actually, let me design mine</button>
     </div>
   </div>
@@ -1042,6 +1106,11 @@ const S = {
   constrainedPalette: null,  // palette index if constrained, else null
   patternLoaded:      null,  // pattern index if a pattern was loaded
   unlocked:           false, // true = show all 12 despite constrainedPalette
+  // editing mode
+  slotMode:    false,        // true = edit by color slot; false = free per-ring painting
+  activeSlot:  null,         // currently selected slot id (raw pattern slot index) or null
+  slotP1:      null,         // per-ring slot index for pole 1 (set when a pattern loads)
+  slotP2:      null,         // per-ring slot index for pole 2
 };
 
 /* drag state */
@@ -1102,13 +1171,15 @@ function buildRingSVG(isBig, isCap, w, h, color, extraClass, attrs) {
 }
 
 function buildPoleHTML(hexArr, D, poleKey, interactive) {
+  const slotArr = poleKey==='p1' ? S.slotP1 : S.slotP2;
   let rings = '';
   hexArr.forEach((hex,i) => {
     const sel    = interactive && S.selPole===poleKey && S.selIdx===i;
+    const inSlot = interactive && S.slotMode && S.activeSlot!==null && slotArr && slotArr[i]===S.activeSlot;
     const big    = S.big.has(i);
     const isCap  = i===0;
     const w      = (big || isCap) ? D.bw : D.sw;
-    const cls    = interactive ? `tap${sel?' sel':''}` : '';
+    const cls    = interactive ? `tap${sel?' sel':''}${inSlot?' slot-hl':''}` : '';
     const onclick = interactive ? `onclick="ringClick('${poleKey}',${i})"` : '';
     const dataPole = interactive ? `data-pole="${poleKey}" data-idx="${i}"` : '';
     rings += buildRingSVG(big, isCap, w, D.h, hex, cls, `${onclick} ${dataPole}`);
@@ -1356,6 +1427,7 @@ function launchFromPalette(patternIdx) {
     applyPattern(patternIdx, E.palette);
     S.patternLoaded = patternIdx;
   }
+  S.slotMode = S.patternLoaded !== null;   // pattern present → start in slot mode
   goTo('cust');
 }
 
@@ -1378,6 +1450,7 @@ function launchFromPattern(colorMode) {
     S.constrainedPalette = null;
     S.unlocked = true;
   }
+  S.slotMode = S.patternLoaded !== null;   // pattern always present here → slot mode
   goTo('cust');
 }
 
@@ -1393,6 +1466,9 @@ function applyPattern(patIdx, palIdx) {
   const pat = PATTERNS[patIdx], pal = PALETTES[palIdx];
   S.p1 = pat.p1.map(si => pal[si % pal.length].hex);
   S.p2 = pat.p2.map(si => pal[si % pal.length].hex);
+  /* record each ring's raw pattern slot index so slot mode can group rings */
+  S.slotP1 = pat.p1.slice();
+  S.slotP2 = pat.p2.slice();
   S.big = new Set(DEF_BIG);
 }
 
@@ -1408,6 +1484,10 @@ function resetState() {
   S.constrainedPalette = null;
   S.patternLoaded = null;
   S.unlocked = false;
+  S.slotMode = false;
+  S.activeSlot = null;
+  S.slotP1 = null;
+  S.slotP2 = null;
 }
 
 /* ══════════════════════════════════════════════════
@@ -1416,6 +1496,7 @@ function resetState() {
 function initCustomiser() {
   buildColorPicker();
   buildConstraintToggles();
+  buildSlotRow();
   refreshPoles();
   updateRingInfo();
   updateUndoBtn();
@@ -1426,6 +1507,10 @@ function initCustomiser() {
 function buildColorPicker() {
   const colors = availColors();
   const row = document.getElementById('color-picker-row');
+  /* When the full color set is in play (not a 6-color palette), let the picker fill the panel */
+  const allColors = (S.unlocked || S.constrainedPalette===null);
+  const wrap = row.closest('.color-picker-scroll-wrap');
+  if (wrap) wrap.classList.toggle('all-colors', allColors);
   row.innerHTML = colors.map(c => {
     const border = c.hex==='#FFFFFF' ? 'border-color:rgba(0,0,0,0.15);' : '';
     const isActive = S.activeColor && S.activeColor.toLowerCase()===c.hex.toLowerCase();
@@ -1446,6 +1531,9 @@ function updateActiveColorBar() {
   const sw  = document.getElementById('active-swatch');
   const lbl = document.getElementById('active-label');
   const hint= document.getElementById('active-hint');
+  /* highlight the All One button while it's waiting for a color pick */
+  const aoBtn = document.getElementById('all-one-btn');
+  if (aoBtn) aoBtn.classList.toggle('pending', S.pendingTool==='all-one');
   if (S.pendingTool==='flood') {
     const curHex = S.selPole ? (S.selPole==='p1'?S.p1:S.p2)[S.selIdx] : null;
     const count  = curHex ? [...S.p1,...S.p2].filter(h=>h.toLowerCase()===curHex.toLowerCase()).length : N*2;
@@ -1458,6 +1546,19 @@ function updateActiveColorBar() {
     sw.style.background  = 'linear-gradient(135deg,#f00,#00f)';
     lbl.textContent = 'All one color';
     hint.textContent = 'pick a color to fill all rings';
+    return;
+  }
+  if (S.slotMode) {
+    if (S.activeSlot===null) {
+      sw.style.background = 'transparent';
+      lbl.textContent = 'Pick a color slot';
+      hint.textContent = 'tap a slot above';
+    } else {
+      const slot = computeSlots().find(s=>s.slot===S.activeSlot);
+      sw.style.background = slot ? slot.hex : 'transparent';
+      lbl.textContent = slot ? slot.label : 'Color slot';
+      hint.textContent = 'pick a color to apply';
+    }
     return;
   }
   if (S.activeColor) {
@@ -1476,16 +1577,91 @@ function buildConstraintToggles() {
   const row = document.getElementById('ctrl-toggles');
   const unlockBtn = document.getElementById('unlock-colors-btn');
   const changePatBtn = document.getElementById('change-pattern-btn');
-  // ctrl-toggles now only carries the unlock pill (Change pattern moved to the More tools bar)
-  row.style.display = S.constrainedPalette!==null ? 'flex' : 'none';
+  const modeBtn = document.getElementById('edit-mode-btn');
+  const showUnlock = S.constrainedPalette!==null;
+  const showMode   = S.patternLoaded!==null;   // mode toggle lives only while a pattern is bound
+  // Row is shown if either the unlock pill or the edit-mode pill is visible
+  row.style.display = (showUnlock || showMode) ? 'flex' : 'none';
   if (unlockBtn) {
     unlockBtn.textContent = S.unlocked ? 'Use my palette' : 'Use all colors';
     unlockBtn.classList.toggle('on', S.unlocked);
-    unlockBtn.style.display = S.constrainedPalette!==null ? '' : 'none';
+    unlockBtn.style.display = showUnlock ? '' : 'none';
+  }
+  if (modeBtn) {
+    modeBtn.textContent = S.slotMode ? 'Edit without pattern' : 'Edit with your pattern';
+    modeBtn.classList.toggle('on', S.slotMode);
+    modeBtn.style.display = showMode ? '' : 'none';
   }
   if (changePatBtn) {
     changePatBtn.style.display = S.patternLoaded!==null ? '' : 'none';
   }
+}
+
+/* ── Slot mode: derive color slots from the loaded pattern ── */
+function computeSlots() {
+  if (!S.slotP1 || !S.slotP2) return [];
+  const weight = {};   // slotId -> visual weight (ledges count 3×, others 1×)
+  const order  = [];   // first-seen order, used as a stable tiebreak
+  const tally = arr => arr.forEach((sid,idx) => {
+    const w = (S.big.has(idx) && idx!==0) ? 3 : 1;
+    if (!(sid in weight)) { weight[sid]=0; order.push(sid); }
+    weight[sid] += w;
+  });
+  tally(S.slotP1); tally(S.slotP2);
+  const labels = ['Main Color','Secondary Color','Third Color','Accent','Accent 2','Detail'];
+  const ids = order.slice().sort((a,b) => (weight[b]-weight[a]) || (order.indexOf(a)-order.indexOf(b)));
+  return ids.map((sid,i) => ({ slot:sid, label:labels[i]||'Detail', weight:weight[sid], hex:slotHex(sid) }));
+}
+function slotHex(sid) {
+  for (let i=0;i<N;i++) if (S.slotP1[i]===sid) return S.p1[i];
+  for (let i=0;i<N;i++) if (S.slotP2[i]===sid) return S.p2[i];
+  return BLACK;
+}
+function paintSlot(sid, hex) {
+  for (let i=0;i<N;i++) if (S.slotP1[i]===sid) S.p1[i]=hex;
+  for (let i=0;i<N;i++) if (S.slotP2[i]===sid) S.p2[i]=hex;
+}
+function buildSlotRow() {
+  const row = document.getElementById('slot-row');
+  if (!row) return;
+  if (!S.slotMode) { row.style.display='none'; row.innerHTML=''; return; }
+  row.style.display = '';
+  row.innerHTML = computeSlots().map(s => {
+    const active = S.activeSlot===s.slot;
+    const border = s.hex==='#FFFFFF' ? 'border-color:rgba(0,0,0,0.22);' : '';
+    return `<button class="slot-chip${active?' active':''}" onclick="selectSlot(${s.slot})">
+      <span class="slot-chip-sw" style="background:${s.hex};${border}"></span>
+      <span class="slot-chip-lbl">${s.label}</span>
+    </button>`;
+  }).join('');
+}
+function selectSlot(sid) {
+  S.activeSlot = sid;
+  buildSlotRow();
+  refreshPoles();          // highlight every ring in the slot on both poles
+  updateActiveColorBar();
+}
+
+/* ── Switch between pattern (slot) editing and free per-ring editing.
+   Two-way and non-destructive: the pattern binding & current colors are kept,
+   so the user can hop back and forth. ── */
+function toggleEditMode() {
+  if (S.slotMode) {
+    /* → free mode: paint individual rings; keep the pattern so we can return */
+    S.slotMode = false;
+    S.activeSlot = null;
+  } else {
+    /* → back to the selected pattern's slot editing */
+    S.slotMode = true;
+    S.activeColor = null;
+    S.selPole = null; S.selIdx = null;
+  }
+  buildSlotRow();
+  buildConstraintToggles();
+  buildColorPicker();
+  refreshPoles();
+  updateRingInfo();
+  updateActiveColorBar();
 }
 
 /* Toggle the secondary "More tools" toolbar */
@@ -1502,11 +1678,34 @@ function toggleMoreTools() {
    COLOR SELECTION (color-first)
    ══════════════════════════════════════════════════ */
 function selectColor(hex, name) {
+  /* Change 3: tapping the already-active color in the picker deselects it (free mode only —
+     in slot mode the picker applies to the active slot, so re-tapping must stay paintable) */
+  if (!S.pendingTool && !S.slotMode && S.activeColor && S.activeColor.toLowerCase()===hex.toLowerCase()) {
+    S.activeColor = null;
+    buildColorPicker();
+    updateActiveColorBar();
+    return;
+  }
   S.activeColor = hex;
+  /* "All One" pending: picking any color fills every ring on both poles, then clears pending */
+  if (S.pendingTool==='all-one') {
+    applyAllOne();        /* pushes history, fills p1/p2, clears pendingTool, refreshes */
+    buildColorPicker();   /* reflect the now-active color in the picker */
+    return;
+  }
   S.pendingTool = null;
+  /* Slot mode: a color pick recolors every ring in the active slot at once */
+  if (S.slotMode && S.activeSlot!==null) {
+    pushHistory();
+    paintSlot(S.activeSlot, hex);
+    buildColorPicker();
+    refreshPoles();        // also rebuilds the slot row (slot swatch updates)
+    updateActiveColorBar();
+    return;
+  }
   buildColorPicker();
-  /* if a ring is already selected, paint it immediately */
-  if (S.selPole!==null && S.selIdx!==null) {
+  /* Free mode: if a ring is already selected, paint it immediately */
+  if (!S.slotMode && S.selPole!==null && S.selIdx!==null) {
     pushHistory();
     paintRing(S.selPole, S.selIdx, hex);
     refreshPoles();
@@ -1521,8 +1720,24 @@ function ringClick(poleKey, idx) {
   if (S.pendingTool==='flood') { applyFlood(poleKey, idx); return; }
   if (S.pendingTool==='all-one') { applyAllOne(); return; }
 
+  /* Slot mode: tapping a ring just selects it (so the ledge toggle can act on it);
+     recoloring happens through the slot row, never by painting a single ring */
+  if (S.slotMode) {
+    S.selPole=poleKey; S.selIdx=idx;
+    refreshPoles(); updateRingInfo();
+    return;
+  }
+
   /* If a color is active, paint immediately */
   if (S.activeColor) {
+    const cur = (poleKey==='p1'?S.p1:S.p2)[idx];
+    /* Change 3: tapping a ring that already has the active color selects it instead of painting,
+       so the user can then use the ring/ledge toggle on it */
+    if (cur.toLowerCase()===S.activeColor.toLowerCase()) {
+      S.selPole=poleKey; S.selIdx=idx;
+      refreshPoles(); updateRingInfo();
+      return;
+    }
     pushHistory();
     paintRing(poleKey, idx, S.activeColor);
     /* keep ring selected for visual feedback */
@@ -1542,7 +1757,7 @@ function paintRing(poleKey, idx, hex) {
 
 /* ── Drag to paint ── */
 function dragStart(e) {
-  if (!S.activeColor) return;
+  if (S.slotMode || !S.activeColor) return;   // slot mode paints by slot, not by drag
   drag.active = true;
   drag.painted = new Set();
   pushHistory();
@@ -1602,12 +1817,13 @@ function updateRingInfo() {
   nBtn.disabled = S.selPole==='p2' && S.selIdx===N-1;
   if (isCap) { tBtn.style.display='none'; return; }
   tBtn.style.display='';
+  /* S.big is shared by both poles, so a ledge count is the same per pole */
   const ledgeCount = [...S.big].filter(i=>i!==0).length;
   const atMax = !big && ledgeCount>=MAX_LEDGE;
   if (big) {
-    tBtn.textContent='→ Make Ring'; tBtn.className='btn sm type-toggle make-ring'; tBtn.disabled=false;
+    tBtn.textContent='Make Ring'; tBtn.className='btn sm type-toggle make-ring'; tBtn.disabled=false;
   } else {
-    tBtn.textContent=atMax?`${ledgeCount}/${MAX_LEDGE} ledges`:'→ Make Ledge';
+    tBtn.textContent=atMax?`${MAX_LEDGE}/${MAX_LEDGE}`:'Make Ledge';
     tBtn.className='btn sm type-toggle make-ledge'; tBtn.disabled=atMax;
   }
 }
@@ -1644,17 +1860,22 @@ function closePatternSwap() {
 function swapPattern(idx) {
   pushHistory();
   if (idx === null) {
-    /* No pattern — reset to black but keep ledge positions */
+    /* No pattern — reset to black but keep ledge positions; this also leaves slot mode */
     S.p1 = new Array(N).fill(BLACK);
     S.p2 = new Array(N).fill(BLACK);
     S.patternLoaded = null;
+    S.slotMode = false;
+    S.activeSlot = null;
+    S.slotP1 = null; S.slotP2 = null;
   } else {
     const palIdx = S.constrainedPalette ?? 0;
-    applyPattern(idx, palIdx);
+    applyPattern(idx, palIdx);   // refreshes slotP1/slotP2 for the new pattern
     S.patternLoaded = idx;
+    S.activeSlot = null;         // old slot ids no longer apply
   }
   closePatternSwap();
-  refreshPoles(); buildConstraintToggles();
+  buildSlotRow(); buildConstraintToggles();
+  refreshPoles(); updateActiveColorBar();
 }
 
 function doFloodFill() {
@@ -1712,10 +1933,12 @@ function doReset() {
   refreshPoles(); updateRingInfo(); updateUndoBtn();
 }
 function toggleRingSize() {
-  if (S.selPole===null||S.selIdx===0) return;
+  if (S.selPole===null||S.selIdx===0) return;   // index 0 (top cap) is never toggleable
   const big=S.big.has(S.selIdx);
-  if (!big && [...S.big].filter(i=>i!==0).length>=MAX_LEDGE) return;
+  if (!big && [...S.big].filter(i=>i!==0).length>=MAX_LEDGE) return;   // at 6/6, can't add
   pushHistory();
+  /* S.big is a single shared set keyed by ring index, so toggling here flips the
+     same index on BOTH poles automatically — no second pole update needed. */
   if (big) S.big.delete(S.selIdx); else S.big.add(S.selIdx);
   refreshPoles(); updateRingInfo();
 }
@@ -1724,13 +1947,18 @@ function toggleRingSize() {
    HISTORY / UNDO
    ══════════════════════════════════════════════════ */
 function pushHistory() {
-  S.history.push({p1:[...S.p1],p2:[...S.p2],big:new Set(S.big)});
+  S.history.push({
+    p1:[...S.p1], p2:[...S.p2], big:new Set(S.big),
+    slotP1: S.slotP1?[...S.slotP1]:null, slotP2: S.slotP2?[...S.slotP2]:null
+  });
   if (S.history.length>30) S.history.shift();
   updateUndoBtn();
 }
 function doUndo() {
   if (!S.history.length) return;
-  const prev=S.history.pop(); S.p1=prev.p1; S.p2=prev.p2; S.big=prev.big;
+  const prev=S.history.pop();
+  S.p1=prev.p1; S.p2=prev.p2; S.big=prev.big;
+  S.slotP1=prev.slotP1; S.slotP2=prev.slotP2;
   S.pendingTool=null;
   refreshPoles(); updateRingInfo(); updateUndoBtn(); updateActiveColorBar();
 }
@@ -1748,6 +1976,7 @@ function refreshPoles() {
     <div class="pole-col"><div class="pole-lbl">Pole 1</div>${buildPoleHTML(S.p1,D,'p1',true)}</div>
     <div class="pole-col"><div class="pole-lbl">Pole 2</div>${buildPoleHTML(S.p2,D,'p2',true)}</div>
   </div>`;
+  if (S.slotMode) buildSlotRow();   // keep slot swatches/weights in sync with ring colors & ledges
 }
 
 function fireAffordance() {
