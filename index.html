@@ -879,8 +879,10 @@ body {
   .color-picker-scroll-wrap,
   .color-picker-scroll-wrap.palette-rows,
   .color-picker-scroll-wrap.all-colors {
-    flex-shrink: 0;
-    max-height: 80px;
+    /* Height hugs the single row of colour circles exactly — no fixed/min/max
+       height, so the toolbar sits flush beneath it with no floating dead space. */
+    flex: 0 0 auto;
+    height: auto; min-height: 0; max-height: none;
     display: flex; align-items: center;
     overflow-x: auto; overflow-y: hidden;
   }
@@ -1222,7 +1224,6 @@ body {
           <div class="ring-nav-row">
             <button class="ring-nav-btn" id="ring-prev-btn" onclick="navRing(-1)" disabled>‹</button>
             <button class="ring-nav-btn" id="ring-next-btn" onclick="navRing(1)"  disabled>›</button>
-            <button class="btn sm type-toggle make-ledge" id="ring-type-btn" onclick="toggleRingSize()" style="margin-left:4px;">Make Ledge</button>
           </div>
         </div>
 
@@ -1450,6 +1451,20 @@ const SZ = {
    previews keep the editor's tight proportions even when small.
    Stacked height ≈ 40·h + 39·(0.3·h) + 4.5·h (shaft) ≈ 56.2·h. */
 function szForHeight(availH) {
+  /* Mobile forces an exact 2px gap between rings (see the .pole-rings !important
+     rule), so the pole must be sized for that gap or the 40-ring stack renders
+     taller than measured and gets clipped. Stack = 40·h + 39·2 + 4.5·h(shaft).
+     Desktop keeps its original ~0.3·h gap maths so it is unchanged. */
+  if (isMobile()) {
+    const g = 2;
+    let h = (availH - 39 * g) / 44.5;
+    h = Math.max(2.5, Math.min(12, h));
+    const sw  = Math.round(h * 1.9);
+    const bw  = Math.round(sw * 1.55);
+    const shw = Math.max(3, Math.round(sw * 0.55));
+    const shh = Math.round(h * 4.5);
+    return {sw, bw, h: Math.round(h*10)/10, gap:0, ringGap:g, shw, shh, capH:Math.round(bw*0.38)};
+  }
   const h = Math.max(3, Math.min(12, availH / 56.2));
   const sw  = Math.round(h * 1.9);
   const bw  = Math.round(sw * 1.55);
@@ -1540,7 +1555,7 @@ function blackPolesHTML(D) {
   });
   const pole = rings => `<div class="pole-body"><div class="pole-rings" style="gap:${D.ringGap??2}px;">${rings}</div>
     <div class="pole-shaft" style="width:${D.shw}px;height:${D.shh}px;"></div></div>`;
-  return `<div class="poles-wrap" style="gap:${gap}px;">
+  return `<div class="poles-wrap" style="gap:${gap}px; justify-content:center; width:100%;">
     <div class="pole-col">${pole(p1)}</div>
     <div class="pole-col">${pole(p2)}</div>
   </div>`;
@@ -1558,7 +1573,20 @@ function szForEl(el) {
     h = Math.max(60, h - 40);
   }
   // Leave a little headroom for the card's padding so the poles sit fully in frame.
-  return szForHeight(h * 0.92);
+  let D = szForHeight(h * 0.92);
+  // Mobile: also guarantee BOTH poles fit the card width so neither is clipped by
+  // .flow-card-visual's overflow:hidden. Scale the pole down proportionally if the
+  // pair (2 ledges + inter-pole gap) would overflow.
+  if (isMobile()) {
+    const w = el.clientWidth;
+    if (w > 20) {
+      const interGap = Math.round(D.sw * 0.6);
+      const needed   = 2 * D.bw + interGap + 12;
+      const avail    = w * 0.9;
+      if (needed > avail) D = szForHeight(h * 0.92 * (avail / needed));
+    }
+  }
+  return D;
 }
 
 /* Build a poles-wrap HTML sized to fit a given element */
@@ -2311,7 +2339,6 @@ function updateRingInfo() {
   const lbl = document.getElementById('ring-info-lbl');
   const pBtn= document.getElementById('ring-prev-btn');
   const nBtn= document.getElementById('ring-next-btn');
-  const tBtn= document.getElementById('ring-type-btn');
   const has = S.selPole!==null;
   row.classList.toggle('hidden', !has);
   if (!has) return;
@@ -2322,17 +2349,7 @@ function updateRingInfo() {
   lbl.innerHTML = `<strong>${pLabel}</strong> · ${rLabel} ${S.selIdx+1}`;
   pBtn.disabled = S.selPole==='p1' && S.selIdx===0;
   nBtn.disabled = S.selPole==='p2' && S.selIdx===N-1;
-  if (isCap) { tBtn.style.display='none'; return; }
-  tBtn.style.display='';
-  /* S.big is shared by both poles, so a ledge count is the same per pole */
-  const ledgeCount = [...S.big].filter(i=>i!==0).length;
-  const atMax = !big && ledgeCount>=MAX_LEDGE;
-  if (big) {
-    tBtn.textContent='Make Ring'; tBtn.className='btn sm type-toggle make-ring'; tBtn.disabled=false;
-  } else {
-    tBtn.textContent=atMax?`${MAX_LEDGE}/${MAX_LEDGE}`:'Make Ledge';
-    tBtn.className='btn sm type-toggle make-ledge'; tBtn.disabled=atMax;
-  }
+  /* Ring/ledge size is changed only via the Adjust Ledges tool — no per-ring toggle here. */
 }
 
 /* ══════════════════════════════════════════════════
@@ -2453,7 +2470,11 @@ function updateAdjustLedgesBtn() {
   const b = document.getElementById('adjust-ledges-btn');
   if (b) {
     b.classList.toggle('on', S.adjustLedgesMode);
-    b.textContent = S.adjustLedgesMode ? '← Back to Colors' : '▭ Adjust Ledges';
+    /* Abbreviate on mobile so the label never gets clipped in the 5-col toolbar */
+    const m = isMobile();
+    b.textContent = S.adjustLedgesMode
+      ? (m ? '← Colors' : '← Back to Colors')
+      : (m ? '▭ Ledges' : '▭ Adjust Ledges');
   }
 }
 /* Show the shape brush panel (and hide the picker) while ON; restore everything when OFF */
@@ -2582,17 +2603,6 @@ function doReset() {
   S.big=new Set(DEF_BIG); S.pendingTool=null;
   refreshPoles(); updateRingInfo(); updateUndoBtn();
 }
-function toggleRingSize() {
-  if (S.selPole===null||S.selIdx===0) return;   // index 0 (top cap) is never toggleable
-  const big=S.big.has(S.selIdx);
-  if (!big && [...S.big].filter(i=>i!==0).length>=MAX_LEDGE) return;   // at 6/6, can't add
-  pushHistory();
-  /* S.big is a single shared set keyed by ring index, so toggling here flips the
-     same index on BOTH poles automatically — no second pole update needed. */
-  if (big) S.big.delete(S.selIdx); else S.big.add(S.selIdx);
-  refreshPoles(); updateRingInfo();
-}
-
 /* ══════════════════════════════════════════════════
    HISTORY / UNDO
    ══════════════════════════════════════════════════ */
