@@ -171,6 +171,16 @@ body {
   padding: 10px 8px 6px; position: relative; overflow: hidden;
   min-height: 0;
 }
+/* Card-preview poles: full width, centered horizontally, both poles top-aligned,
+   spaced proportionally (3% of card width) so they scale with any card size.
+   Clipped (not bled) if they ever exceed bounds. */
+.flow-card-visual .poles-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 3%;
+}
 .flow-card-footer {
   padding: 6px 12px 12px; flex-shrink: 0;
 }
@@ -841,13 +851,27 @@ body {
   .controls-panel {
     flex-shrink: 0;
     display: flex; flex-direction: column;
+    justify-content: flex-end;     /* pin the toolbar + action bar to the bottom */
     overflow: hidden;
   }
+  /* Bottom-up stacking order inside the controls panel:
+     action-bar (very bottom) → share-confirm → controls/toolbar block. */
+  .controls-panel > .ctrl-mode        { order: 1; }
+  .controls-panel > .share-confirm    { order: 2; }
+  .controls-panel > .cust-action-bar  { order: 3; }
   .ctrl-mode {
     flex: 0 0 auto; min-height: 0;
     display: flex; flex-direction: column;
     overflow: hidden;
   }
+  /* Inside the tools block, the expanded "More tools" bar sits ABOVE the main
+     toolbar, so bottom-up reads: main toolbar → more-tools → color picker. */
+  .tools-block {
+    display: flex; flex-direction: column;
+  }
+  .tools-block > #pattern-swap-panel       { order: 1; }
+  .tools-block > .more-tools-bar           { order: 2; }
+  .tools-block > .scratch-tools.main-tools { order: 3; }
 
   /* Every toolbar section keeps its natural height — nothing grows or overlaps */
   .active-color-bar,
@@ -866,7 +890,13 @@ body {
   .ring-info-row                { max-height: 38px; }
   .scratch-tools.main-tools     { max-height: 44px; }
   .more-tools-bar .scratch-tools{ max-height: 44px; }
-  .cust-action-bar              { max-height: 64px; }
+  /* Action bar flush to the very bottom: no gap/margin below it, only the
+     home-indicator safe-area inset as bottom padding. No height cap so the
+     safe-area padding can't clip the buttons on notched phones. */
+  .cust-action-bar {
+    max-height: none; margin-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
   .ledge-brush-panel            { max-height: 120px; gap: 10px; padding: 10px 12px; overflow: hidden; }
   .ledge-brush-opt              { padding: 8px 16px; }
 
@@ -976,9 +1006,38 @@ body {
   .pal-sq-grid-all { max-width: 160px; gap: 4px; padding: 10px; }
 }
 
+/* ══════════════════════════════════════════════
+   TOAST NOTIFICATION
+   ══════════════════════════════════════════════ */
+#toast {
+  position: fixed;
+  top: calc(var(--nav-h) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  background: #1A1A1A;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+#toast.show {
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
 </style>
 </head>
 <body>
+
+<!-- ═══════════ TOAST NOTIFICATION ═══════════ -->
+<div id="toast" role="status" aria-live="polite"></div>
 
 <!-- ═══════════ MOBILE WARNING BANNER (item 1) ═══════════ -->
 <div id="mobile-warning" class="mobile-warning" role="region" aria-label="Display recommendation">
@@ -1266,7 +1325,6 @@ body {
         <button class="btn ghost save" onclick="openSave()">Save</button>
         <button class="btn accent order" onclick="doOrder()">Order Now →</button>
       </div>
-      <div class="share-confirm" id="share-confirm">URL copied ✓</div>
     </div>
   </div>
 </div>
@@ -1465,7 +1523,7 @@ function szForHeight(availH) {
     const shh = Math.round(h * 4.5);
     return {sw, bw, h: Math.round(h*10)/10, gap:0, ringGap:g, shw, shh, capH:Math.round(bw*0.38)};
   }
-  const h = Math.max(3, Math.min(12, availH / 56.2));
+  const h = Math.max(3, Math.min(7, availH / 55));
   const sw  = Math.round(h * 1.9);
   const bw  = Math.round(sw * 1.55);
   const shw = Math.max(4, Math.round(sw * 0.55));
@@ -1544,7 +1602,6 @@ function buildPolesFromPattern(palIdx, patIdx, sc, D) {
 /* Build a static all-black pole pair for preview cards */
 function blackPolesHTML(D) {
   const blk = new Array(N).fill(BLACK);
-  const gap = Math.round(D.sw * 0.6);
   let p1='', p2='';
   blk.forEach((hex,i) => {
     const big   = DEF_BIG.has(i);
@@ -1555,7 +1612,7 @@ function blackPolesHTML(D) {
   });
   const pole = rings => `<div class="pole-body"><div class="pole-rings" style="gap:${D.ringGap??2}px;">${rings}</div>
     <div class="pole-shaft" style="width:${D.shw}px;height:${D.shh}px;"></div></div>`;
-  return `<div class="poles-wrap" style="gap:${gap}px; justify-content:center; width:100%;">
+  return `<div class="poles-wrap">
     <div class="pole-col">${pole(p1)}</div>
     <div class="pole-col">${pole(p2)}</div>
   </div>`;
@@ -1572,18 +1629,19 @@ function szForEl(el) {
     if (h < 20) h = 120;
     h = Math.max(60, h - 40);
   }
-  // Leave a little headroom for the card's padding so the poles sit fully in frame.
-  let D = szForHeight(h * 0.92);
+  // Size the pole stack to fill ~88% of the card's height so the poles fill the
+  // card visual area, while still leaving a little headroom top & bottom.
+  let D = szForHeight(h * 0.88);
   // Mobile: also guarantee BOTH poles fit the card width so neither is clipped by
   // .flow-card-visual's overflow:hidden. Scale the pole down proportionally if the
   // pair (2 ledges + inter-pole gap) would overflow.
   if (isMobile()) {
     const w = el.clientWidth;
     if (w > 20) {
-      const interGap = Math.round(D.sw * 0.6);
+      const interGap = Math.round(w * 0.03);   // matches the CSS gap:3% between poles
       const needed   = 2 * D.bw + interGap + 12;
       const avail    = w * 0.9;
-      if (needed > avail) D = szForHeight(h * 0.92 * (avail / needed));
+      if (needed > avail) D = szForHeight(h * 0.88 * (avail / needed));
     }
   }
   return D;
@@ -1592,7 +1650,7 @@ function szForEl(el) {
 /* Build a poles-wrap HTML sized to fit a given element */
 function polesHTMLForCard(palIdx, patIdx, el) {
   const D = szForEl(el);
-  return `<div class="poles-wrap" style="gap:${Math.round(D.sw*0.6)}px;">${buildPolesFromPattern(palIdx, patIdx, [], D)}</div>`;
+  return `<div class="poles-wrap">${buildPolesFromPattern(palIdx, patIdx, [], D)}</div>`;
 }
 let _palAnim=null, _palAnimIdx=0;
 
@@ -1632,7 +1690,7 @@ function initPalChoice() {
     /* Measure once, reuse the sizing for every cycle */
     requestAnimationFrame(()=>{
       const D = szForEl(patVis);
-      const draw = idx => `<div class="poles-wrap" style="gap:${Math.round(D.sw*0.6)}px;">${buildPolesFromPattern(palIdx, idx, [], D)}</div>`;
+      const draw = idx => `<div class="poles-wrap">${buildPolesFromPattern(palIdx, idx, [], D)}</div>`;
       patVis.innerHTML = draw(0);
       const render = () => {
         patVis.style.opacity='0';
@@ -1692,26 +1750,28 @@ function initLanding() {
     patVis._built = true;
     patVis.style.transition='opacity 0.3s';
     let pi = 0;
-    /* Measure the card once, then reuse the sizing for every cycle — no re-measure on reflow */
-    requestAnimationFrame(()=>{
+    /* Double rAF so the card is fully painted and at its final height before we
+       measure once; the stored D is then reused for every cycle (no re-measure). */
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
       const D = szForEl(patVis);
-      const draw = idx => `<div class="poles-wrap" style="gap:${Math.round(D.sw*0.6)}px;">${buildPolesFromPattern(PATTERNS[idx].defaultPalette, idx, [], D)}</div>`;
+      const draw = idx => `<div class="poles-wrap">${buildPolesFromPattern(PATTERNS[idx].defaultPalette, idx, [], D)}</div>`;
       patVis.innerHTML = draw(0);
       const render = () => {
         patVis.style.opacity='0';
         setTimeout(()=>{ patVis.innerHTML = draw(pi); patVis.style.opacity='1'; },180);
       };
       setInterval(()=>{ pi=(pi+1)%PATTERNS.length; render(); }, 1500);
-    });
+    }));
   }
-  /* Scratch — all black, dynamic size */
+  /* Scratch — all black, sized to fill the card the same way as the pattern card */
   const scrVis = document.getElementById('land-scratch-vis');
   if (scrVis && !scrVis._built) {
     scrVis._built = true;
-    requestAnimationFrame(()=>{
+    /* Double rAF so the container has its final dimensions before measuring once */
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
       const D = szForEl(scrVis);
       scrVis.innerHTML = blackPolesHTML(D);
-    });
+    }));
   }
 }
 
@@ -2705,11 +2765,18 @@ function shareURL() {
     u.searchParams.set('d',encode()); return u.toString();
   } catch(e){ return window.location.href+'?d='+encode(); }
 }
+let toastTimer=null;
+function showToast(message) {
+  const el=document.getElementById('toast');
+  el.textContent=message;
+  el.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2000);
+}
 function doShare() {
   const url=shareURL();
   navigator.clipboard.writeText(url).then(()=>{
-    const el=document.getElementById('share-confirm');
-    el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2400);
+    showToast('URL Copied!');
   }).catch(()=>prompt('Copy this link:',url));
 }
 function doOrder() {
