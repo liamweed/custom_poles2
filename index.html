@@ -808,81 +808,85 @@ body {
    ══════════════════════════════════════════════ */
 @media (max-width: 739px) {
 
-  /* ── Item 5: taller poles stage (66%), controls take the remaining 34% ── */
-  .poles-stage   { flex: 0 0 66%; }
-  /* ── Item 2: controls panel is a FIXED-height flex column — it never scrolls.
-     ctrl-mode keeps its base flex:1, and only the color-picker area inside it is
-     scrollable, so the active-color bar, toggles, ring info, toolbar, more-tools
-     bar and action bar all stay put. Opening More Tools shrinks the picker. ── */
+  /* ── Item 2: fixed-height flex sections that fit the screen with no overlap.
+     Poles take 52%; the controls panel takes the rest and never scrolls — only
+     the color-picker area inside it scrolls (horizontally). Everything else
+     (active-color bar, toggles, ring info, toolbar, more-tools, action bar) is
+     flex-shrink:0 so it stays put; opening More Tools just shrinks the picker. ── */
+  .poles-stage    { flex: 0 0 52%; overflow: hidden; }
   .controls-panel {
-    flex: 0 0 34%;
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
     overflow: hidden;
   }
+
+  /* ── Items 2 & 3: color picker is the ONLY scrollable region — always a single
+     horizontal row, whether 3, 4 or 16 colours are showing (never wraps) ── */
   .color-picker-scroll-wrap,
   .color-picker-scroll-wrap.palette-rows,
   .color-picker-scroll-wrap.all-colors {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
+    flex: 1; min-height: 0;
+    display: flex; align-items: center;
+    overflow-x: auto; overflow-y: hidden;
   }
-
-  /* ── Item 4: the color picker is always one horizontal scroll row of fixed
-     44px circles, whether all 16 colors or a 3–4 colour palette are showing ── */
   .color-picker-scroll-wrap .color-picker-row,
   .color-picker-scroll-wrap.palette-rows .color-picker-row,
   .color-picker-scroll-wrap.all-colors .color-picker-row {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 8px;
-    padding: 10px 12px;
-    min-height: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
+    display: flex; flex-direction: row; flex-wrap: nowrap;
+    align-items: center; justify-content: flex-start;
+    flex: 0 0 auto;            /* keep natural width so the wrap scrolls, not shrinks */
+    gap: 6px; padding: 6px 10px; min-height: 0;
+    overflow: visible;
   }
   /* Palette mode wraps colours in .cpick-row groups; flatten them so every colour
-     becomes a single item in the one horizontal row. */
+     is a single item in the one horizontal row. */
   .color-picker-scroll-wrap .cpick-row { display: contents; }
-  .color-picker-scroll-wrap .cpick { flex: 0 0 auto; }
+  .color-picker-scroll-wrap .cpick { flex: 0 0 52px; width: 52px; }
   .color-picker-scroll-wrap .cpick-circle,
   .color-picker-scroll-wrap.palette-rows .cpick-circle,
   .color-picker-scroll-wrap.all-colors .cpick-circle {
-    width: 44px; height: 44px;
+    width: 36px; height: 36px;
   }
   .color-picker-scroll-wrap .cpick-name,
   .color-picker-scroll-wrap.palette-rows .cpick-name,
   .color-picker-scroll-wrap.all-colors .cpick-name {
-    font-size: 0.52rem;
-    max-width: 48px;
+    font-size: 0.5rem;
+    max-width: 52px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  /* ── Item 3: expanded "More tools" buttons are identical to the main toolbar
-     buttons — same height, font size, padding and equal-width single-row layout
-     (mobile-scoped so desktop's 4-column grid is untouched). ── */
+  /* ── Item 7: slot mode — compact colour-only swatches (no labels) in a row
+     above the picker, so both the swatches and the picker stay visible ── */
+  .slot-row   { gap: 6px; padding: 6px 10px; }
+  .slot-chip  { min-width: 0; padding: 2px; gap: 0; }
+  .slot-chip-sw  { width: 32px; height: 32px; }
+  .slot-chip-lbl { display: none; }
+
+  /* ── Item 8: main toolbar + more-tools — equal 5-column grids, matching button
+     size, no overlap and no wrap ── */
+  .scratch-tools.main-tools,
   .more-tools-bar .scratch-tools {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 4px;
   }
+  .scratch-tools.main-tools .btn.tool,
   .more-tools-bar .scratch-tools .btn.tool {
-    flex: 1 1 0;
     min-width: 0;
-    min-height: 34px;
-    font-size: 0.58rem;
+    min-height: 38px;
+    font-size: 0.62rem;
     letter-spacing: 0.02em;
-    padding: 0 3px;
+    padding: 0 6px;
+    overflow: hidden;
   }
 
-  /* ── Item 10: tighter, even ring/ledge spacing ── */
+  /* ── Item 10 (kept): tighter, even ring/ledge spacing ── */
   .pole-rings { gap: 1.5px; }
   .pole-rings .ring-svg { margin: 0; padding: 0; }
 
-  /* ── Item 7: palette picker cards all equal height, swatches centered ── */
+  /* ── Palette picker cards equal height, swatches centered (kept) ── */
   #s-e-pal .card-grid-3,
   #s-e-pat-palettes .card-grid-3 {
     grid-auto-rows: 1fr;
@@ -892,7 +896,7 @@ body {
     align-items: center; justify-content: center;
   }
 
-  /* ── Item 9: pattern picker cards — 2 per row, taller, bigger previews ── */
+  /* ── Pattern picker cards — 2 per row, taller, bigger previews (kept) ── */
   #s-e-pat .card-grid-3,
   #s-e-pal-patterns .card-grid-3 {
     grid-template-columns: 1fr 1fr;
@@ -902,6 +906,14 @@ body {
   #s-e-pal-patterns .flow-card {
     min-height: 280px;
   }
+
+  /* ── Item 5: colour-choice cards (s-e-pat-choice) keep a constant height even
+     as the palette cycles between 3 and 4 colours ── */
+  #s-e-pat-choice .card-grid-3 .flow-card { height: 38vw; }
+  #s-e-pat-choice .flow-card-visual { overflow: hidden; }
+
+  /* ── Item 6: "Use all colours" 4×4 grid scaled down to fit inside its card ── */
+  .pal-sq-grid-all { max-width: 160px; gap: 4px; padding: 10px; }
 }
 
 </style>
@@ -1770,6 +1782,7 @@ function initCustomiser() {
   updateFillBtn();
   updateAdjustLedgesBtn();
   closePatternSwap();
+  wirePolesTouch();   // attach touch drag-paint listeners (once)
   if (!S.pulsed) { setTimeout(fireAffordance,600); S.pulsed=true; }
 }
 
@@ -2090,36 +2103,63 @@ function dragMove(e) {
 }
 function dragEnd() { drag.active=false; }
 
+/* Mouse path: derive the ring under the pointer from a mouse event. */
 function getRingFromEvent(e) {
-  /* touchstart/move expose the live point in e.touches[0]; touchend has none, so
-     fall back to changedTouches; mouse events carry the point on e itself. */
-  const pt = (e.touches && e.touches[0])
-          || (e.changedTouches && e.changedTouches[0])
-          || e;
-  let target = document.elementFromPoint(pt.clientX, pt.clientY);
-  while (target && !target.dataset.pole) { target = target.parentElement; }
-  if (!target || !target.dataset.pole) return null;
-  return { pole: target.dataset.pole, idx: +target.dataset.idx };
+  const pt = e.touches ? e.touches[0] : e;
+  let el = document.elementFromPoint(pt.clientX, pt.clientY);
+  while (el && !el.dataset.pole) { el = el.parentElement; }
+  if (!el || !el.dataset.pole) return null;
+  return { pole: el.dataset.pole, idx: +el.dataset.idx };
 }
 
-/* ── Touch wiring (mobile Safari): addEventListener with {passive:false} so the
-   touchstart/touchmove preventDefault() calls are honoured and the page doesn't
-   scroll while painting. A plain tap (no drag) is routed to ringClick so tapping
-   still works in slot / fill / ledge modes where dragStart is a no-op. ── */
-(function wirePolesTouch() {
+/* Touch path: walk up from elementFromPoint() to the ring SVG carrying data-pole. */
+function walkToRing(el) {
+  let node = el;
+  while (node && !node.dataset.pole) { node = node.parentElement; }
+  if (!node || !node.dataset.pole) return null;
+  return { pole: node.dataset.pole, idx: +node.dataset.idx };
+}
+
+/* Attach touch drag-paint listeners to the (static) poles-stage div. Guarded so
+   re-entering the customiser doesn't stack duplicate listeners. {passive:false}
+   on touchstart/touchmove lets preventDefault() stop the page scrolling. */
+function wirePolesTouch() {
   const stage = document.getElementById('poles-stage');
-  if (!stage) return;
-  stage.addEventListener('touchstart', e => { dragStart(e); e.preventDefault(); }, { passive: false });
-  stage.addEventListener('touchmove',  e => { dragMove(e);  e.preventDefault(); }, { passive: false });
-  stage.addEventListener('touchend', e => {
-    const wasPainting = drag.active;
-    dragEnd();
-    if (!wasPainting) {            // not a free-mode drag → treat as a tap
-      const ring = getRingFromEvent(e);
-      if (ring) ringClick(ring.pole, ring.idx);
+  if (!stage || stage._touchWired) return;
+  stage._touchWired = true;
+
+  stage.addEventListener('touchstart', function(e) {
+    if (!S.activeColor) return;
+    e.preventDefault();
+    drag.active = true;
+    drag.painted = new Set();
+    pushHistory();
+    const t = e.touches[0];
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    const ring = walkToRing(el);
+    if (ring) { paintRing(ring.pole, ring.idx, S.activeColor); drag.painted.add(ring.pole+ring.idx); refreshPoles(); }
+  }, { passive: false });
+
+  stage.addEventListener('touchmove', function(e) {
+    if (!drag.active || !S.activeColor) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    const ring = walkToRing(el);
+    if (ring) {
+      const key = ring.pole + ring.idx;
+      if (!drag.painted.has(key)) {
+        paintRing(ring.pole, ring.idx, S.activeColor);
+        drag.painted.add(key);
+        refreshPoles();
+      }
     }
   }, { passive: false });
-})();
+
+  stage.addEventListener('touchend', function(e) {
+    drag.active = false;
+  }, { passive: true });
+}
 
 /* ── Ring nav ── */
 function navRing(dir) {
