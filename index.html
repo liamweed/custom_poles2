@@ -810,27 +810,68 @@ body {
 
   /* ── Item 5: taller poles stage (66%), controls take the remaining 34% ── */
   .poles-stage   { flex: 0 0 66%; }
+  /* ── Item 2: controls panel is a FIXED-height flex column — it never scrolls.
+     ctrl-mode keeps its base flex:1, and only the color-picker area inside it is
+     scrollable, so the active-color bar, toggles, ring info, toolbar, more-tools
+     bar and action bar all stay put. Opening More Tools shrinks the picker. ── */
   .controls-panel {
     flex: 0 0 34%;
-    /* Item 8: make the whole panel scrollable so nothing is cut off */
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
   }
-
-  /* ── Item 3: no dead space between the toolbar and the action bar ──
-     ctrl-mode + picker take their natural height (instead of stretching to fill),
-     so the toolbar sits directly above the action bar; overflow scrolls the panel. */
-  .ctrl-mode { flex: 0 0 auto; overflow: visible; }
   .color-picker-scroll-wrap,
   .color-picker-scroll-wrap.palette-rows,
   .color-picker-scroll-wrap.all-colors {
-    flex: 0 0 auto;
+    flex: 1;
     min-height: 0;
-    overflow: visible;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
-  /* ── Item 6: expanded "More tools" buttons match the main toolbar buttons ── */
+  /* ── Item 4: the color picker is always one horizontal scroll row of fixed
+     44px circles, whether all 16 colors or a 3–4 colour palette are showing ── */
+  .color-picker-scroll-wrap .color-picker-row,
+  .color-picker-scroll-wrap.palette-rows .color-picker-row,
+  .color-picker-scroll-wrap.all-colors .color-picker-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  /* Palette mode wraps colours in .cpick-row groups; flatten them so every colour
+     becomes a single item in the one horizontal row. */
+  .color-picker-scroll-wrap .cpick-row { display: contents; }
+  .color-picker-scroll-wrap .cpick { flex: 0 0 auto; }
+  .color-picker-scroll-wrap .cpick-circle,
+  .color-picker-scroll-wrap.palette-rows .cpick-circle,
+  .color-picker-scroll-wrap.all-colors .cpick-circle {
+    width: 44px; height: 44px;
+  }
+  .color-picker-scroll-wrap .cpick-name,
+  .color-picker-scroll-wrap.palette-rows .cpick-name,
+  .color-picker-scroll-wrap.all-colors .cpick-name {
+    font-size: 0.52rem;
+    max-width: 48px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── Item 3: expanded "More tools" buttons are identical to the main toolbar
+     buttons — same height, font size, padding and equal-width single-row layout
+     (mobile-scoped so desktop's 4-column grid is untouched). ── */
+  .more-tools-bar .scratch-tools {
+    display: flex;
+    gap: 4px;
+  }
   .more-tools-bar .scratch-tools .btn.tool {
+    flex: 1 1 0;
+    min-width: 0;
     min-height: 34px;
     font-size: 0.58rem;
     letter-spacing: 0.02em;
@@ -1068,14 +1109,13 @@ body {
   </nav>
   <div class="cust-body">
     <!-- POLES -->
+    <!-- Touch handlers are attached via addEventListener({passive:false}) in JS so
+         preventDefault() works on mobile Safari; mouse handlers stay inline. -->
     <div class="poles-stage" id="poles-stage"
       onmousedown="dragStart(event)"
       onmousemove="dragMove(event)"
       onmouseup="dragEnd()"
-      onmouseleave="dragEnd()"
-      ontouchstart="dragStart(event)"
-      ontouchmove="dragMove(event)"
-      ontouchend="dragEnd()">
+      onmouseleave="dragEnd()">
     </div>
 
     <!-- CONTROLS -->
@@ -2051,12 +2091,35 @@ function dragMove(e) {
 function dragEnd() { drag.active=false; }
 
 function getRingFromEvent(e) {
-  const pt = e.touches ? e.touches[0] : e;
-  let el = document.elementFromPoint(pt.clientX, pt.clientY);
-  while (el && !el.dataset.pole) { el = el.parentElement; }
-  if (!el || !el.dataset.pole) return null;
-  return { pole: el.dataset.pole, idx: +el.dataset.idx };
+  /* touchstart/move expose the live point in e.touches[0]; touchend has none, so
+     fall back to changedTouches; mouse events carry the point on e itself. */
+  const pt = (e.touches && e.touches[0])
+          || (e.changedTouches && e.changedTouches[0])
+          || e;
+  let target = document.elementFromPoint(pt.clientX, pt.clientY);
+  while (target && !target.dataset.pole) { target = target.parentElement; }
+  if (!target || !target.dataset.pole) return null;
+  return { pole: target.dataset.pole, idx: +target.dataset.idx };
 }
+
+/* ── Touch wiring (mobile Safari): addEventListener with {passive:false} so the
+   touchstart/touchmove preventDefault() calls are honoured and the page doesn't
+   scroll while painting. A plain tap (no drag) is routed to ringClick so tapping
+   still works in slot / fill / ledge modes where dragStart is a no-op. ── */
+(function wirePolesTouch() {
+  const stage = document.getElementById('poles-stage');
+  if (!stage) return;
+  stage.addEventListener('touchstart', e => { dragStart(e); e.preventDefault(); }, { passive: false });
+  stage.addEventListener('touchmove',  e => { dragMove(e);  e.preventDefault(); }, { passive: false });
+  stage.addEventListener('touchend', e => {
+    const wasPainting = drag.active;
+    dragEnd();
+    if (!wasPainting) {            // not a free-mode drag → treat as a tap
+      const ring = getRingFromEvent(e);
+      if (ring) ringClick(ring.pole, ring.idx);
+    }
+  }, { passive: false });
+})();
 
 /* ── Ring nav ── */
 function navRing(dir) {
