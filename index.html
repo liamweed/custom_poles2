@@ -10,6 +10,7 @@
 <meta property="og:url" content="https://liamweed.github.io/custom_poles2">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://liamweed.github.io/custom_poles2">
 <meta name="twitter:title" content="twIIgs Custom Ski Poles">
 <meta name="twitter:description" content="Design your own custom ski poles">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/liamweed/custom_poles2/main/preview.png">
@@ -2784,6 +2785,12 @@ function showToast(message) {
 }
 function doShare() {
   const url=shareURL();
+  console.log('shareURL():',url);
+  const shareUrl = shareURL();
+  document.querySelector('meta[property="og:url"]')
+    ?.setAttribute('content', shareUrl);
+  document.querySelector('meta[property="twitter:url"]')
+    ?.setAttribute('content', shareUrl);
   navigator.clipboard.writeText(url).then(()=>{
     showToast('URL Copied!');
   }).catch(()=>prompt('Copy this link:',url));
