@@ -207,25 +207,33 @@ body {
   text-transform: uppercase; color: var(--lite);
 }
 
-/* 2 col × 3 row — palette cards */
-.pal-sq-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(3, 1fr);
-  gap: 5px;
-  padding: 14px;
-  width: 100%; max-width: 160px;
-  aspect-ratio: 2/3;
+/* Variable palette cards (3–6 colors) — see palSqHTML().
+   --cols (set inline) = max squares in any row; every square is 1/cols of the
+   box width, so a row with fewer squares simply centers. */
+.pal-sq-stack {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px; padding: 14px;
+  width: 100%; max-width: 170px;
 }
-/* 4 col × 3 row — all-colors card */
+.pal-sq-row {
+  display: flex; justify-content: center; align-items: center;
+  gap: 6px; width: 100%;
+}
+.pal-sq-row .pal-sq {
+  flex: 0 0 auto;
+  width: calc((100% - (var(--cols) - 1) * 6px) / var(--cols));
+  height: auto; aspect-ratio: 1;
+}
+/* 4 col × 4 row — all-colors card (16 colors) */
 .pal-sq-grid-all {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
   gap: 5px;
   padding: 14px;
-  width: 100%; max-width: 220px;
-  aspect-ratio: 4/3;
+  width: 100%; max-width: 200px;
+  aspect-ratio: 1/1;
 }
 .pal-sq {
   border-radius: 6px;
@@ -531,29 +539,99 @@ body {
   }
 }
 
-/* Full palette in play (not constrained to a 6-color palette): the swatches grow to
-   fill most of the panel. Auto-fill grid so adding more colors later just reflows. */
-.color-picker-scroll-wrap.all-colors {
+/* Full color set in play (not constrained to a palette).
+   Mobile: keep the default horizontal-scroll row (no override here).
+   Desktop: lay all 16 colors out as a 4×4 grid that fills the panel without
+   scrolling — swatches/names shrink a touch so four rows fit comfortably. */
+@media (min-width:740px) {
+  .color-picker-scroll-wrap.all-colors {
+    flex: 1; min-height: 0; overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .color-picker-scroll-wrap.all-colors .color-picker-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);   /* 16 colors = 4×4 */
+    grid-auto-rows: 1fr;
+    align-content: space-evenly;
+    justify-items: center;
+    gap: 8px;
+    padding: 12px;
+    flex: 1; min-height: 100%;
+    overflow: visible;
+    border-bottom: none;
+  }
+  .color-picker-scroll-wrap.all-colors .cpick-circle {
+    width: clamp(34px, 8vw, 46px);
+    height: clamp(34px, 8vw, 46px);
+  }
+  .color-picker-scroll-wrap.all-colors .cpick-name {
+    font-size: 0.6rem;
+    max-width: 64px;
+  }
+}
+
+/* Constrained palette: same big swatches as all-colors, but split into 3 centered
+   rows (remainder goes to the middle row) instead of a fixed grid. */
+.color-picker-scroll-wrap.palette-rows {
   flex: 1; min-height: 0; overflow-y: auto;
 }
-.color-picker-scroll-wrap.all-colors .color-picker-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);   /* 4 across → even rows (12 colors = 3×4) */
-  align-content: space-evenly;
-  justify-items: center;
-  gap: 12px 8px;
-  padding: 16px 12px;
+.color-picker-scroll-wrap.palette-rows .color-picker-row {
+  display: flex; flex-direction: column;
+  justify-content: space-evenly;
+  gap: 12px; padding: 16px 12px;
   min-height: 100%;
-  overflow: visible;
-  border-bottom: none;
+  overflow: visible; border-bottom: none;
 }
-.color-picker-scroll-wrap.all-colors .cpick-circle {
+.color-picker-scroll-wrap.palette-rows .cpick-row {
+  display: flex; justify-content: center; align-items: center;
+  gap: 18px;
+}
+.color-picker-scroll-wrap.palette-rows .cpick-circle {
   width: clamp(44px, 13vw, 60px);
   height: clamp(44px, 13vw, 60px);
 }
-.color-picker-scroll-wrap.all-colors .cpick-name {
+.color-picker-scroll-wrap.palette-rows .cpick-name {
   font-size: 0.72rem;
   max-width: 72px;
+}
+
+/* ── Ledge brush panel (Adjust Ledges mode replaces the color picker) ── */
+.ledge-brush-panel {
+  flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; padding: 18px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+@media (min-width:740px) { .ledge-brush-panel { flex: 1; min-height: 0; } }
+.ledge-brush-hint {
+  font-family: 'Barlow Condensed',sans-serif; font-size: 0.66rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--lite); text-align: center;
+}
+.ledge-brush-opts { display: flex; gap: 22px; align-items: flex-end; justify-content: center; }
+.ledge-brush-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  background: none; border: 2px solid rgba(0,0,0,0.12); border-radius: 12px;
+  padding: 14px 20px; cursor: pointer; transition: all var(--t);
+  touch-action: manipulation; min-width: 100px;
+}
+.ledge-brush-opt:active { transform: scale(0.96); }
+@media (hover:hover) { .ledge-brush-opt:hover { border-color: rgba(0,0,0,0.3); } }
+.ledge-brush-opt.active { border-color: var(--ink); background: rgba(0,0,0,0.04); box-shadow: var(--sh); }
+.ledge-brush-shape { display: flex; align-items: center; justify-content: center; height: 34px; }
+.ledge-brush-lbl {
+  font-family: 'Barlow Condensed',sans-serif; font-size: 0.8rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid);
+}
+.ledge-brush-opt.active .ledge-brush-lbl { color: var(--ink); }
+.ledge-brush-count {
+  font-family: 'Barlow Condensed',sans-serif; font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid);
+}
+.ledge-brush-count .lc-num { color: var(--ink); }
+.ledge-brush-count.flash { animation: ledgeLimitFlash 0.45s ease 0s 2; }
+@keyframes ledgeLimitFlash {
+  0%,100% { color: var(--mid); transform: scale(1); }
+  50%     { color: #ED0039; transform: scale(1.18); }
 }
 
 /* Tools block — normal flow on mobile */
@@ -570,13 +648,10 @@ body {
 @media (min-width:740px) {
   .scratch-tools { grid-template-columns: repeat(4,1fr); padding: 8px 16px 6px; }
 }
-/* Main toolbar carries the "More tools" toggle inline.
-   Mobile: 2×2 tools with the toggle spanning a full-width row beneath.
-   Desktop: all five share a single row. */
-.scratch-tools.main-tools .more-tools-toggle { grid-column: 1 / -1; }
+/* Main toolbar: 6 tools incl. "Adjust Ledges" + the "More tools" toggle.
+   Mobile: 2 columns (3 even rows). Desktop: 3 columns (2 even rows). */
 @media (min-width:740px) {
-  .scratch-tools.main-tools { grid-template-columns: repeat(5,1fr); }
-  .scratch-tools.main-tools .more-tools-toggle { grid-column: auto; }
+  .scratch-tools.main-tools { grid-template-columns: repeat(3,1fr); }
 }
 .btn.tool {
   min-height: 34px; padding: 0 8px; font-size: 0.68rem;
@@ -589,6 +664,10 @@ body {
 /* "All One" pending — waiting for a color pick to fill every ring */
 .btn.tool.pending { background: var(--accent); border-color: var(--accent); color:#fff; animation: aoPulse 1s ease-in-out infinite; }
 @keyframes aoPulse { 0%,100%{ opacity:1; } 50%{ opacity:0.55; } }
+/* Sticky-ON tool (Fill) — clear filled/inverted accent state */
+.btn.tool.on { background: var(--accent); border-color: var(--accent); color:#fff; }
+.btn.tool.on:active { background: var(--accent); color:#fff; }
+@media (hover:hover) { .btn.tool.on:hover { background: var(--accent); border-color: var(--accent); color:#fff; } }
 
 /* ── Action bar (Order / Save / Share) ── */
 .cust-action-bar {
@@ -905,6 +984,9 @@ body {
           <div class="color-picker-row" id="color-picker-row"></div>
         </div>
 
+        <!-- 2b. Ledge brush panel — replaces the picker while Adjust Ledges is ON -->
+        <div class="ledge-brush-panel" id="ledge-brush-panel" style="display:none"></div>
+
         <!-- 3. Constraint toggles -->
         <div class="ctrl-toggles" id="ctrl-toggles" style="display:none">
           <button class="toggle-pill" id="unlock-colors-btn" onclick="toggleUnlockColors()">Use all colors</button>
@@ -929,6 +1011,7 @@ body {
             <button class="btn tool ghost" id="all-one-btn" onclick="doAllOne()">● All One</button>
             <button class="btn tool ghost" onclick="doMirror()">Mirror P1→P2</button>
             <button class="btn tool ghost" onclick="doReset()">Reset</button>
+            <button class="btn tool ghost adjust-ledges-toggle" id="adjust-ledges-btn" onclick="doAdjustLedges()">▭ Adjust Ledges</button>
             <button class="btn tool ghost more-tools-toggle" id="more-tools-btn" onclick="toggleMoreTools()">More tools ▾</button>
           </div>
 
@@ -1027,32 +1110,36 @@ function svgLedge(w, h, color, extraClass, attrs) {
 
 /* ══════════════════════════════════════════════════
    ── EDIT COLORS HERE ──
-   12 official twIIgs colors.
+   16 official twIIgs colors.
    ══════════════════════════════════════════════════ */
 const COLORS = [
-  {hex:'#FE9648', name:'Orange'},
-  {hex:'#009DB7', name:'Teal'},
-  {hex:'#8BCF8E', name:'Green'},
-  {hex:'#E9E982', name:'Yellow'},
-  {hex:'#ED0039', name:'Red'},
-  {hex:'#E0D6C7', name:'Sand'},
-  {hex:'#964A77', name:'Plum'},
-  {hex:'#F695AD', name:'Pink'},
-  {hex:'#19232F', name:'Black'},
-  {hex:'#97CBFF', name:'Bluebird'},
-  {hex:'#5869A1', name:'Navy'},
-  {hex:'#FFFFFF', name:'White'}
+  {hex:'#DB281A', name:'Red'},
+  {hex:'#FF8C10', name:'Tangerine'},
+  {hex:'#F7D458', name:'Yellow'},
+  {hex:'#B7D2A9', name:'Pistachio'},
+  {hex:'#83BE00', name:'Lime'},
+  {hex:'#034639', name:'Spruce'},
+  {hex:'#008C95', name:'Teal'},
+  {hex:'#8CBDE8', name:'Sky'},
+  {hex:'#31577A', name:'Slate'},
+  {hex:'#6767AC', name:'Purple'},
+  {hex:'#641C4E', name:'Merlot'},
+  {hex:'#FF40B6', name:'Pink'},
+  {hex:'#D2386C', name:'Raspberry'},
+  {hex:'#FFFFFF', name:'White'},
+  {hex:'#000000', name:'Black'},
+  {hex:'#DDCBA4', name:'Almond'}
 ];
 
 /* ══════════════════════════════════════════════════
    ── EDIT PALETTES HERE ──
-   3 palettes, 6 colors each (indices into COLORS).
-   No names shown to users.
+   Palettes hold a variable number of colors (3–6),
+   referenced by index into COLORS. No names shown to users.
    ══════════════════════════════════════════════════ */
 const PAL_IDX = [
-  [9, 4, 10, 11, 1,  8],
-  [0, 3, 2,  5,  7,  8],
-  [6, 5, 7,  2,  10, 8]
+  [10, 12, 11, 9],   // Merlot, Raspberry, Pink, Purple
+  [10, 9, 3],        // Merlot, Purple, Pistachio
+  [14, 15, 8, 5]     // Black, Almond, Slate, Spruce
 ];
 const PALETTES = PAL_IDX.map(arr => arr.map(i => COLORS[i]));
 
@@ -1100,7 +1187,10 @@ const S = {
   selPole:     null,   // 'p1'|'p2'
   selIdx:      null,
   activeColor: null,   // hex string of currently selected paint color
-  pendingTool: null,   // 'flood'|'all-one'
+  pendingTool: null,   // 'all-one' (one-shot, waits for a color pick)
+  fillMode:    false,  // true = Fill toggle is ON; taps flood matching colors
+  adjustLedgesMode: false, // true = Adjust Ledges toggle is ON; taps apply the shape brush
+  ledgeBrush:  null,   // 'ring'|'ledge'|null — which shape is the active brush
   pulsed:      false,
   // constraint state
   constrainedPalette: null,  // palette index if constrained, else null
@@ -1175,7 +1265,7 @@ function buildPoleHTML(hexArr, D, poleKey, interactive) {
   let rings = '';
   hexArr.forEach((hex,i) => {
     const sel    = interactive && S.selPole===poleKey && S.selIdx===i;
-    const inSlot = interactive && S.slotMode && S.activeSlot!==null && slotArr && slotArr[i]===S.activeSlot;
+    const inSlot = interactive && !S.adjustLedgesMode && S.slotMode && S.activeSlot!==null && slotArr && slotArr[i]===S.activeSlot;
     const big    = S.big.has(i);
     const isCap  = i===0;
     const w      = (big || isCap) ? D.bw : D.sw;
@@ -1367,12 +1457,30 @@ function initLanding() {
   }
 }
 
+/* Split a palette into display rows. Drives every palette swatch in the app:
+     3 → [3]          (single horizontal row)
+     4 → [2,2]        (2×2 grid)
+     5 → [3,2]        (3 on top, 2 centered below)
+     6 → [3,3]        (two rows of 3)
+   Adding new palette sizes "just works" — ≤3 stays one row, otherwise it
+   splits into a fuller top row and a centered remainder below. */
+function palRows(pal) {
+  const n = pal.length;
+  if (n <= 3) return [pal];
+  const top = Math.ceil(n / 2);
+  return [pal.slice(0, top), pal.slice(top)];
+}
+
 function palSqHTML(pal) {
-  return `<div class="pal-sq-grid">${pal.map(c=>`<div class="pal-sq" style="background:${c.hex};${c.hex==='#FFFFFF'?'border:1.5px solid rgba(0,0,0,0.13);':''}"></div>`).join('')}</div>`;
+  const rows = palRows(pal);
+  const cols = Math.max(...rows.map(r => r.length));   // square size = 1/cols of the box
+  const sq = c => `<div class="pal-sq" style="background:${c.hex};${c.hex==='#FFFFFF'?'border:1.5px solid rgba(0,0,0,0.13);':''}"></div>`;
+  const html = rows.map(r => `<div class="pal-sq-row">${r.map(sq).join('')}</div>`).join('');
+  return `<div class="pal-sq-stack" style="--cols:${cols}">${html}</div>`;
 }
 
 function palSqHTMLAll() {
-  // All 12 colors in a 4-col × 3-row grid
+  // All 16 colors in a 4-col × 4-row grid
   return `<div class="pal-sq-grid-all">${COLORS.map(c=>`<div class="pal-sq" style="background:${c.hex};${c.hex==='#FFFFFF'?'border:1.5px solid rgba(0,0,0,0.13);':''}"></div>`).join('')}</div>`;
 }
 
@@ -1480,6 +1588,9 @@ function resetState() {
   S.selPole = null; S.selIdx = null;
   S.activeColor = null;
   S.pendingTool = null;
+  S.fillMode = false;
+  S.adjustLedgesMode = false;
+  S.ledgeBrush = null;
   S.pulsed = false;
   S.constrainedPalette = null;
   S.patternLoaded = null;
@@ -1500,6 +1611,8 @@ function initCustomiser() {
   refreshPoles();
   updateRingInfo();
   updateUndoBtn();
+  updateFillBtn();
+  updateAdjustLedgesBtn();
   closePatternSwap();
   if (!S.pulsed) { setTimeout(fireAffordance,600); S.pulsed=true; }
 }
@@ -1510,16 +1623,36 @@ function buildColorPicker() {
   /* When the full color set is in play (not a 6-color palette), let the picker fill the panel */
   const allColors = (S.unlocked || S.constrainedPalette===null);
   const wrap = row.closest('.color-picker-scroll-wrap');
-  if (wrap) wrap.classList.toggle('all-colors', allColors);
-  row.innerHTML = colors.map(c => {
+  if (wrap) {
+    wrap.classList.toggle('all-colors', allColors);
+    wrap.classList.toggle('palette-rows', !allColors);
+  }
+  const cpick = c => {
     const border = c.hex==='#FFFFFF' ? 'border-color:rgba(0,0,0,0.15);' : '';
     const isActive = S.activeColor && S.activeColor.toLowerCase()===c.hex.toLowerCase();
     return `<div class="cpick${isActive?' active':''}" onclick="selectColor('${c.hex}','${c.name}')">
       <div class="cpick-circle" style="background:${c.hex};${border}"></div>
       <div class="cpick-name">${c.name}</div>
     </div>`;
-  }).join('');
+  };
+  if (allColors) {
+    row.innerHTML = colors.map(cpick).join('');
+  } else {
+    /* Palette: split across 3 rows, remainder added to the middle row, each row centered */
+    row.innerHTML = splitThreeRows(colors)
+      .map(r => `<div class="cpick-row">${r.map(cpick).join('')}</div>`)
+      .join('');
+  }
   updateActiveColorBar();
+}
+
+/* Split a list into [top, middle, bottom]; any remainder goes to the middle row */
+function splitThreeRows(arr) {
+  const n = arr.length, base = Math.floor(n/3), rem = n % 3;
+  const counts = [base, base + rem, base];
+  const out = []; let i = 0;
+  counts.forEach(c => { out.push(arr.slice(i, i+c)); i += c; });
+  return out;
 }
 
 function availColors() {
@@ -1534,18 +1667,29 @@ function updateActiveColorBar() {
   /* highlight the All One button while it's waiting for a color pick */
   const aoBtn = document.getElementById('all-one-btn');
   if (aoBtn) aoBtn.classList.toggle('pending', S.pendingTool==='all-one');
-  if (S.pendingTool==='flood') {
-    const curHex = S.selPole ? (S.selPole==='p1'?S.p1:S.p2)[S.selIdx] : null;
-    const count  = curHex ? [...S.p1,...S.p2].filter(h=>h.toLowerCase()===curHex.toLowerCase()).length : N*2;
-    sw.style.background  = curHex||'transparent';
-    lbl.textContent = `Flood fill (${count} rings)`;
-    hint.textContent = 'pick replacement color';
+  if (S.adjustLedgesMode) {
+    sw.style.background = 'transparent';
+    lbl.textContent = S.ledgeBrush ? (S.ledgeBrush==='ledge' ? 'Ledge brush' : 'Ring brush') : 'Adjust ledges';
+    hint.textContent = S.ledgeBrush ? 'tap a ring to change it' : 'pick a shape below';
     return;
   }
   if (S.pendingTool==='all-one') {
     sw.style.background  = 'linear-gradient(135deg,#f00,#00f)';
     lbl.textContent = 'All one color';
     hint.textContent = 'pick a color to fill all rings';
+    return;
+  }
+  if (S.fillMode) {
+    if (S.activeColor) {
+      sw.style.background = S.activeColor;
+      const c = COLORS.find(x=>x.hex.toLowerCase()===S.activeColor.toLowerCase());
+      lbl.textContent = c ? `Fill: ${c.name}` : 'Fill';
+      hint.textContent = 'tap a ring to flood';
+    } else {
+      sw.style.background = 'transparent';
+      lbl.textContent = 'Fill mode';
+      hint.textContent = 'pick a color first';
+    }
     return;
   }
   if (S.slotMode) {
@@ -1646,6 +1790,7 @@ function selectSlot(sid) {
    Two-way and non-destructive: the pattern binding & current colors are kept,
    so the user can hop back and forth. ── */
 function toggleEditMode() {
+  turnOffFill(); turnOffAdjustLedges();
   if (S.slotMode) {
     /* → free mode: paint individual rings; keep the pattern so we can return */
     S.slotMode = false;
@@ -1678,9 +1823,10 @@ function toggleMoreTools() {
    COLOR SELECTION (color-first)
    ══════════════════════════════════════════════════ */
 function selectColor(hex, name) {
+  if (S.adjustLedgesMode) return;   // picker is hidden in this mode; ignore stray calls
   /* Change 3: tapping the already-active color in the picker deselects it (free mode only —
-     in slot mode the picker applies to the active slot, so re-tapping must stay paintable) */
-  if (!S.pendingTool && !S.slotMode && S.activeColor && S.activeColor.toLowerCase()===hex.toLowerCase()) {
+     in slot mode the picker applies to the active slot, and in fill mode you need a color held) */
+  if (!S.pendingTool && !S.slotMode && !S.fillMode && S.activeColor && S.activeColor.toLowerCase()===hex.toLowerCase()) {
     S.activeColor = null;
     buildColorPicker();
     updateActiveColorBar();
@@ -1694,6 +1840,12 @@ function selectColor(hex, name) {
     return;
   }
   S.pendingTool = null;
+  /* Fill mode: a color pick just arms the flood color — the next ring tap applies it */
+  if (S.fillMode) {
+    buildColorPicker();
+    updateActiveColorBar();
+    return;
+  }
   /* Slot mode: a color pick recolors every ring in the active slot at once */
   if (S.slotMode && S.activeSlot!==null) {
     pushHistory();
@@ -1717,8 +1869,11 @@ function selectColor(hex, name) {
    RING INTERACTION
    ══════════════════════════════════════════════════ */
 function ringClick(poleKey, idx) {
-  if (S.pendingTool==='flood') { applyFlood(poleKey, idx); return; }
   if (S.pendingTool==='all-one') { applyAllOne(); return; }
+  /* Adjust Ledges ON: tap applies the ring/ledge shape brush (works in any mode) */
+  if (S.adjustLedgesMode) { applyLedgeBrush(poleKey, idx); return; }
+  /* Fill toggle ON: flood every matching color across both poles (works in free & slot mode) */
+  if (S.fillMode) { applyFlood(poleKey, idx); return; }
 
   /* Slot mode: tapping a ring just selects it (so the ledge toggle can act on it);
      recoloring happens through the slot row, never by painting a single ring */
@@ -1757,7 +1912,7 @@ function paintRing(poleKey, idx, hex) {
 
 /* ── Drag to paint ── */
 function dragStart(e) {
-  if (S.slotMode || !S.activeColor) return;   // slot mode paints by slot, not by drag
+  if (S.slotMode || S.fillMode || S.adjustLedgesMode || !S.activeColor) return;   // these modes don't drag-paint
   drag.active = true;
   drag.painted = new Set();
   pushHistory();
@@ -1838,6 +1993,7 @@ function toggleUnlockColors() {
 }
 
 function openPatternSwap() {
+  turnOffFill(); turnOffAdjustLedges();
   const panel = document.getElementById('pattern-swap-panel');
   const grid  = document.getElementById('pattern-swap-grid');
   panel.style.display='block';
@@ -1878,20 +2034,152 @@ function swapPattern(idx) {
   refreshPoles(); updateActiveColorBar();
 }
 
+/* Fill is a sticky toggle: stays ON across taps until clicked again or another tool is used */
 function doFloodFill() {
-  if (!S.activeColor && S.selPole===null) return;
-  S.pendingTool='flood';
+  turnOffAdjustLedges();         // mutually exclusive with Adjust Ledges
+  S.fillMode = !S.fillMode;
+  S.pendingTool = null;          // can't be mid another tool
+  updateFillBtn();
   updateActiveColorBar();
 }
+function updateFillBtn() {
+  const b = document.getElementById('fill-btn');
+  if (b) {
+    b.classList.toggle('on', S.fillMode);
+    b.textContent = S.fillMode ? '◼ Fill: ON' : '◼ Fill';
+  }
+}
+/* Turn Fill OFF — called whenever another tool/action takes over */
+function turnOffFill() {
+  if (!S.fillMode) return;
+  S.fillMode = false;
+  updateFillBtn();
+}
 function applyFlood(poleKey, idx) {
+  if (!S.activeColor) { flashPickHint(); return; }   // need a paint color first
   const targetHex = (poleKey==='p1'?S.p1:S.p2)[idx].toLowerCase();
-  pushHistory();
-  S.p1 = S.p1.map(h=>h.toLowerCase()===targetHex?S.activeColor||h:h);
-  S.p2 = S.p2.map(h=>h.toLowerCase()===targetHex?S.activeColor||h:h);
-  S.pendingTool=null;
+  if (targetHex === S.activeColor.toLowerCase()) return;   // already that color — nothing to do
+  pushHistory();   // full snapshot before each fill, so each is individually undoable
+  S.p1 = S.p1.map(h=>h.toLowerCase()===targetHex?S.activeColor:h);
+  S.p2 = S.p2.map(h=>h.toLowerCase()===targetHex?S.activeColor:h);
+  /* Fill stays ON for repeated fills */
   refreshPoles(); updateActiveColorBar();
 }
+/* Briefly nudge the user to pick a color when they try to fill with none selected */
+function flashPickHint() {
+  const hint = document.getElementById('active-hint');
+  if (!hint) return;
+  hint.textContent = 'pick a color first!';
+  hint.style.color = 'var(--accent)';
+  setTimeout(()=>{ hint.style.color=''; updateActiveColorBar(); }, 1200);
+}
+
+/* ══════════════════════════════════════════════════
+   ADJUST LEDGES — sticky toggle, swaps the picker for a ring/ledge shape brush
+   ══════════════════════════════════════════════════ */
+function doAdjustLedges() {
+  S.adjustLedgesMode = !S.adjustLedgesMode;
+  if (S.adjustLedgesMode) {
+    turnOffFill();                 // mutually exclusive with Fill
+    S.pendingTool = null;
+    S.ledgeBrush = null;           // start with no shape chosen
+  } else {
+    S.ledgeBrush = null;
+  }
+  updateAdjustLedgesBtn();
+  applyEditPanelVisibility();
+  updateActiveColorBar();
+}
+function turnOffAdjustLedges() {
+  if (!S.adjustLedgesMode) return;
+  S.adjustLedgesMode = false;
+  S.ledgeBrush = null;
+  updateAdjustLedgesBtn();
+  applyEditPanelVisibility();
+}
+function updateAdjustLedgesBtn() {
+  const b = document.getElementById('adjust-ledges-btn');
+  if (b) {
+    b.classList.toggle('on', S.adjustLedgesMode);
+    b.textContent = S.adjustLedgesMode ? '← Back to Colors' : '▭ Adjust Ledges';
+  }
+}
+/* Show the shape brush panel (and hide the picker) while ON; restore everything when OFF */
+function applyEditPanelVisibility() {
+  const picker  = document.querySelector('.color-picker-scroll-wrap');
+  const slotRow = document.getElementById('slot-row');
+  const brush   = document.getElementById('ledge-brush-panel');
+  if (S.adjustLedgesMode) {
+    if (picker)  picker.style.display = 'none';
+    if (slotRow) slotRow.style.display = 'none';
+    if (brush)   { brush.style.display = ''; renderLedgeBrush(); }
+    document.getElementById('ring-info-row')?.classList.add('hidden');
+    refreshPoles();   // drop any slot highlight while in this mode
+  } else {
+    if (brush)  brush.style.display = 'none';
+    if (picker) picker.style.display = '';
+    buildColorPicker();   // picker returns exactly as before
+    buildSlotRow();       // slot row returns if slot mode is active
+    refreshPoles();
+    updateRingInfo();
+  }
+}
+function renderLedgeBrush() {
+  const panel = document.getElementById('ledge-brush-panel');
+  if (!panel) return;
+  const neutral = '#9AA0A6';
+  const ringSel  = S.ledgeBrush==='ring'  ? ' active' : '';
+  const ledgeSel = S.ledgeBrush==='ledge' ? ' active' : '';
+  const count = [...S.big].filter(i=>i!==0).length;
+  panel.innerHTML = `
+    <div class="ledge-brush-hint">Pick a shape, then tap a ring to change it</div>
+    <div class="ledge-brush-opts">
+      <button class="ledge-brush-opt${ringSel}" onclick="selectLedgeBrush('ring')">
+        <div class="ledge-brush-shape">${svgRing(34,16,neutral)}</div>
+        <div class="ledge-brush-lbl">Ring</div>
+      </button>
+      <button class="ledge-brush-opt${ledgeSel}" onclick="selectLedgeBrush('ledge')">
+        <div class="ledge-brush-shape">${svgLedge(54,16,neutral)}</div>
+        <div class="ledge-brush-lbl">Ledge</div>
+      </button>
+    </div>
+    <div class="ledge-brush-count" id="ledge-brush-count">Ledges <span class="lc-num">${count}</span> / ${MAX_LEDGE}</div>`;
+}
+function selectLedgeBrush(shape) {
+  S.ledgeBrush = shape;
+  renderLedgeBrush();
+  updateActiveColorBar();
+}
+/* Apply the chosen shape to a tapped position. S.big is shared across poles, so the
+   change mirrors to the same index on both poles automatically. */
+function applyLedgeBrush(poleKey, idx) {
+  if (!S.ledgeBrush) return;          // no brush picked yet
+  if (idx===0) return;                // top cap can't change
+  const isBig = S.big.has(idx);
+  if (S.ledgeBrush==='ledge') {
+    if (isBig) return;                // already a ledge
+    if ([...S.big].filter(i=>i!==0).length >= MAX_LEDGE) { flashLedgeLimit(); return; }
+    pushHistory();
+    S.big.add(idx);
+  } else {                            // ring brush
+    if (!isBig) return;               // already a ring
+    pushHistory();
+    S.big.delete(idx);
+  }
+  refreshPoles();
+  renderLedgeBrush();                 // keep the ledge count fresh
+}
+function flashLedgeLimit() {
+  const el = document.getElementById('ledge-brush-count');
+  if (!el) return;
+  el.classList.remove('flash');
+  void el.offsetWidth;               // restart the animation
+  el.classList.add('flash');
+  setTimeout(()=>el.classList.remove('flash'), 900);
+}
+
 function doAllOne() {
+  turnOffFill(); turnOffAdjustLedges();
   S.pendingTool='all-one';
   updateActiveColorBar();
 }
@@ -1904,6 +2192,7 @@ function applyAllOne() {
   refreshPoles(); updateActiveColorBar();
 }
 function doRandom() {
+  turnOffFill(); turnOffAdjustLedges();
   const colors=availColors();
   pushHistory();
   const rand=()=>colors[Math.floor(Math.random()*colors.length)].hex;
@@ -1911,10 +2200,12 @@ function doRandom() {
   refreshPoles();
 }
 function doMirror() {
+  turnOffFill(); turnOffAdjustLedges();
   pushHistory(); S.p2=[...S.p1]; refreshPoles();
   if (S.selPole==='p2') updateRingInfo();
 }
 function doInverse() {
+  turnOffFill(); turnOffAdjustLedges();
   const changed=S.p1.reduce((a,h,i)=>{ if(h.toLowerCase()!==BLACK.toLowerCase())a.push(i); return a; },[]);
   pushHistory();
   if (!changed.length) { S.p2=[...S.p1]; }
@@ -1927,6 +2218,7 @@ function doInverse() {
 }
 function doReset() {
   if (!confirm('Reset all rings and ledge positions?')) return;
+  turnOffFill(); turnOffAdjustLedges();
   pushHistory();
   S.p1=new Array(N).fill(BLACK); S.p2=new Array(N).fill(BLACK);
   S.big=new Set(DEF_BIG); S.pendingTool=null;
@@ -1956,6 +2248,7 @@ function pushHistory() {
 }
 function doUndo() {
   if (!S.history.length) return;
+  turnOffFill(); turnOffAdjustLedges();
   const prev=S.history.pop();
   S.p1=prev.p1; S.p2=prev.p2; S.big=prev.big;
   S.slotP1=prev.slotP1; S.slotP2=prev.slotP2;
