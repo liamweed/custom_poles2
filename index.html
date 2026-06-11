@@ -214,7 +214,7 @@ body {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 6px; padding: 14px;
-  width: 100%; max-width: 170px;
+  width: 100%; max-width: 255px;
 }
 .pal-sq-row {
   display: flex; justify-content: center; align-items: center;
@@ -648,10 +648,20 @@ body {
 @media (min-width:740px) {
   .scratch-tools { grid-template-columns: repeat(4,1fr); padding: 8px 16px 6px; }
 }
-/* Main toolbar: 6 tools incl. "Adjust Ledges" + the "More tools" toggle.
-   Mobile: 2 columns (3 even rows). Desktop: 3 columns (2 even rows). */
+/* Main toolbar: all tools incl. the "More tools" toggle in a single
+   equal-width flex row (mobile + desktop). */
+.scratch-tools.main-tools {
+  display: flex;
+  gap: 4px;
+}
+.scratch-tools.main-tools .btn.tool {
+  flex: 1 1 0; min-width: 0;
+  padding: 0 3px;
+  font-size: 0.58rem;
+  letter-spacing: 0.02em;
+}
 @media (min-width:740px) {
-  .scratch-tools.main-tools { grid-template-columns: repeat(3,1fr); }
+  .scratch-tools.main-tools .btn.tool { font-size: 0.64rem; padding: 0 5px; letter-spacing: 0.04em; }
 }
 .btn.tool {
   min-height: 34px; padding: 0 8px; font-size: 0.68rem;
@@ -1005,12 +1015,11 @@ body {
 
         <!-- 5. Tools (pinned to bottom of ctrl-mode) -->
         <div class="tools-block">
-          <!-- Main toolbar — always visible (More tools toggle sits inline) -->
+          <!-- Main toolbar — always visible, all in one row (More tools toggle inline) -->
           <div class="scratch-tools main-tools">
             <button class="btn tool ghost" id="undo-btn" onclick="doUndo()" disabled>↺ Undo</button>
-            <button class="btn tool ghost" id="all-one-btn" onclick="doAllOne()">● All One</button>
-            <button class="btn tool ghost" onclick="doMirror()">Mirror P1→P2</button>
             <button class="btn tool ghost" onclick="doReset()">Reset</button>
+            <button class="btn tool ghost" id="all-one-btn" onclick="doAllOne()">● All One</button>
             <button class="btn tool ghost adjust-ledges-toggle" id="adjust-ledges-btn" onclick="doAdjustLedges()">▭ Adjust Ledges</button>
             <button class="btn tool ghost more-tools-toggle" id="more-tools-btn" onclick="toggleMoreTools()">More tools ▾</button>
           </div>
@@ -1018,9 +1027,11 @@ body {
           <!-- Secondary toolbar — hidden until "More tools" tapped -->
           <div class="more-tools-bar" id="more-tools-bar" style="display:none;">
             <div class="scratch-tools">
-              <button class="btn tool ghost" onclick="doRandom()">🎲 Random</button>
+              <button class="btn tool ghost" onclick="doMirror()">Mirror P1→P2</button>
+              <button class="btn tool ghost" onclick="doRandom()">Random</button>
               <button class="btn tool ghost" id="fill-btn" onclick="doFloodFill()">◼ Fill</button>
-              <button class="btn tool ghost" onclick="doInverse()">⇄ Inverse</button>
+              <button class="btn tool ghost" onclick="doResetColors()">Reset Colors</button>
+              <button class="btn tool ghost" onclick="doResetLedges()">Reset Ledges</button>
               <button class="btn tool ghost" id="change-pattern-btn" onclick="openPatternSwap()" style="display:none">⟳ Change pattern</button>
             </div>
           </div>
@@ -1473,7 +1484,9 @@ function palRows(pal) {
 
 function palSqHTML(pal) {
   const rows = palRows(pal);
-  const cols = Math.max(...rows.map(r => r.length));   // square size = 1/cols of the box
+  /* Size squares off a shared baseline of 3 cols so every palette (3,4,5,6…)
+     renders identically-sized squares; smaller rows just center. */
+  const cols = Math.max(3, ...rows.map(r => r.length));
   const sq = c => `<div class="pal-sq" style="background:${c.hex};${c.hex==='#FFFFFF'?'border:1.5px solid rgba(0,0,0,0.13);':''}"></div>`;
   const html = rows.map(r => `<div class="pal-sq-row">${r.map(sq).join('')}</div>`).join('');
   return `<div class="pal-sq-stack" style="--cols:${cols}">${html}</div>`;
@@ -2204,17 +2217,23 @@ function doMirror() {
   pushHistory(); S.p2=[...S.p1]; refreshPoles();
   if (S.selPole==='p2') updateRingInfo();
 }
-function doInverse() {
+/* ── Reset Colors only: all rings → black, ledge positions kept ── */
+function doResetColors() {
+  if (!confirm('Reset all ring colors to black? Ledge positions will be kept.')) return;
   turnOffFill(); turnOffAdjustLedges();
-  const changed=S.p1.reduce((a,h,i)=>{ if(h.toLowerCase()!==BLACK.toLowerCase())a.push(i); return a; },[]);
   pushHistory();
-  if (!changed.length) { S.p2=[...S.p1]; }
-  else {
-    const cols=changed.map(i=>S.p1[i]), rev=[...cols].reverse();
-    S.p2=new Array(N).fill(BLACK);
-    changed.forEach((pos,i)=>{ S.p2[pos]=rev[i]; });
-  }
-  refreshPoles();
+  S.p1=new Array(N).fill('#000000');
+  S.p2=new Array(N).fill('#000000');
+  S.pendingTool=null;
+  refreshPoles(); updateActiveColorBar();
+}
+/* ── Reset Ledges only: ledge positions → default set, colors kept ── */
+function doResetLedges() {
+  if (!confirm('Reset ledge positions to default? Colors will be kept.')) return;
+  turnOffFill(); turnOffAdjustLedges();
+  pushHistory();
+  S.big=new Set(DEF_BIG);
+  refreshPoles(); updateRingInfo();
 }
 function doReset() {
   if (!confirm('Reset all rings and ledge positions?')) return;
