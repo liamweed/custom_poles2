@@ -57,8 +57,12 @@ body {
 .fade-in { animation: fadeIn 0.2s ease both; }
 
 /* ── Logo ── */
+/* The outer <svg> has no viewBox of its own (it lives on the <symbol>), so some
+   mobile browsers can't derive an intrinsic width from height:auto and render it
+   at 0 width — i.e. invisible. Pinning the aspect ratio (symbol viewBox is
+   1300×780) forces a correct width at every size, so the logo shows everywhere. */
 .logo-svg {
-  height: 44px; width: auto; display: block;
+  height: 44px; width: auto; aspect-ratio: 1300 / 780; display: block;
   cursor: pointer; user-select: none; flex-shrink: 0;
   color: var(--ink); --logo-ii: var(--ink);
 }
@@ -316,6 +320,9 @@ body {
   display: flex; align-items: center; justify-content: center;
   overflow: hidden; padding: 8px 12px;
   user-select: none;
+  /* Let touchmove paint without the browser hijacking the gesture as a scroll —
+     without this, touchmove arrives non-cancelable and drag-paint fails on mobile. */
+  touch-action: none;
 }
 @media (min-width:740px) {
   .poles-stage {
@@ -766,9 +773,105 @@ body {
   .ov-box { border-radius: 18px; padding-bottom: 32px; }
 }
 
+/* ══════════════════════════════════════════════
+   MOBILE WARNING BANNER (item 1 — shown via JS when width < 740px)
+   ══════════════════════════════════════════════ */
+.mobile-warning {
+  display: none;
+  position: fixed; left: 0; right: 0; bottom: 0;
+  z-index: 400;
+  background: var(--ink); color: #fff;
+  padding: 14px 16px calc(14px + var(--safe-b));
+  align-items: center; gap: 12px; justify-content: space-between;
+  box-shadow: 0 -6px 28px rgba(0,0,0,0.22);
+  animation: sheetUp 0.28s cubic-bezier(0.32,0.72,0,1) both;
+}
+.mobile-warning.show { display: flex; }
+.mobile-warning-text {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.84rem; font-weight: 600; letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+.mobile-warning-btn {
+  flex-shrink: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+  background: #fff; color: var(--ink);
+  border: none; border-radius: 5px;
+  padding: 10px 16px; min-height: 40px; cursor: pointer;
+  touch-action: manipulation;
+}
+.mobile-warning-btn:active { transform: scale(0.96); }
+
+/* ══════════════════════════════════════════════
+   MOBILE FIXES — all scoped to phones (≤739px). Desktop is untouched.
+   ══════════════════════════════════════════════ */
+@media (max-width: 739px) {
+
+  /* ── Item 5: taller poles stage (66%), controls take the remaining 34% ── */
+  .poles-stage   { flex: 0 0 66%; }
+  .controls-panel {
+    flex: 0 0 34%;
+    /* Item 8: make the whole panel scrollable so nothing is cut off */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Item 3: no dead space between the toolbar and the action bar ──
+     ctrl-mode + picker take their natural height (instead of stretching to fill),
+     so the toolbar sits directly above the action bar; overflow scrolls the panel. */
+  .ctrl-mode { flex: 0 0 auto; overflow: visible; }
+  .color-picker-scroll-wrap,
+  .color-picker-scroll-wrap.palette-rows,
+  .color-picker-scroll-wrap.all-colors {
+    flex: 0 0 auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  /* ── Item 6: expanded "More tools" buttons match the main toolbar buttons ── */
+  .more-tools-bar .scratch-tools .btn.tool {
+    min-height: 34px;
+    font-size: 0.58rem;
+    letter-spacing: 0.02em;
+    padding: 0 3px;
+  }
+
+  /* ── Item 10: tighter, even ring/ledge spacing ── */
+  .pole-rings { gap: 1.5px; }
+  .pole-rings .ring-svg { margin: 0; padding: 0; }
+
+  /* ── Item 7: palette picker cards all equal height, swatches centered ── */
+  #s-e-pal .card-grid-3,
+  #s-e-pat-palettes .card-grid-3 {
+    grid-auto-rows: 1fr;
+  }
+  #s-e-pal .flow-card-visual,
+  #s-e-pat-palettes .flow-card-visual {
+    align-items: center; justify-content: center;
+  }
+
+  /* ── Item 9: pattern picker cards — 2 per row, taller, bigger previews ── */
+  #s-e-pat .card-grid-3,
+  #s-e-pal-patterns .card-grid-3 {
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 1fr;
+  }
+  #s-e-pat .flow-card,
+  #s-e-pal-patterns .flow-card {
+    min-height: 280px;
+  }
+}
+
 </style>
 </head>
 <body>
+
+<!-- ═══════════ MOBILE WARNING BANNER (item 1) ═══════════ -->
+<div id="mobile-warning" class="mobile-warning" role="region" aria-label="Display recommendation">
+  <span class="mobile-warning-text">For the best designing experience, use a laptop or desktop.</span>
+  <button class="mobile-warning-btn" onclick="dismissMobileWarning()">Got it</button>
+</div>
 
 <!-- ═══════════ LOGO SVG SYMBOL ═══════════ -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
@@ -2377,9 +2480,27 @@ window.addEventListener('resize',()=>{
   _rz=setTimeout(()=>{ if(document.getElementById('s-cust').classList.contains('active')) refreshPoles(); },120);
 });
 
+/* ══════════════════════════════════════════════════
+   MOBILE WARNING BANNER (item 1) — once per session, width < 740px
+   ══════════════════════════════════════════════════ */
+const MOBILE_WARN_KEY = 'twiigs_mobile_warning_dismissed';
+function dismissMobileWarning() {
+  const el = document.getElementById('mobile-warning');
+  if (el) el.classList.remove('show');
+  try { sessionStorage.setItem(MOBILE_WARN_KEY, '1'); } catch(e){}
+}
+function maybeShowMobileWarning() {
+  try { if (sessionStorage.getItem(MOBILE_WARN_KEY)) return; } catch(e){}
+  if (window.innerWidth < 740) {
+    const el = document.getElementById('mobile-warning');
+    if (el) el.classList.add('show');
+  }
+}
+
 /* INIT */
 initLanding();
 checkURL();
+maybeShowMobileWarning();
 </script>
 </body>
 </html>
