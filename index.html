@@ -2850,7 +2850,7 @@ function klaviyoSubscribe(email, listId, properties) {
 
     const profileAttributes = { email: email };
     if (properties && Object.keys(properties).length > 0) {
-      Object.assign(profileAttributes, properties);
+      profileAttributes.properties = properties;
     }
 
     const payload = {
