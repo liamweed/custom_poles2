@@ -15,6 +15,7 @@
 <meta name="twitter:description" content="Design your own custom ski poles">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/liamweed/custom_poles2/main/preview.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+<script async type="text/javascript" src="https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=Yq7u24"></script>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
 
@@ -1370,6 +1371,24 @@ body {
     <div class="ov-email-row">
       <input class="ov-email-input" type="email" id="ov-email" placeholder="your@email.com" autocomplete="email">
       <button class="btn accent sm" onclick="submitSave()">Save →</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin:8px 0;">
+      <input type="checkbox" id="ov-design-link" checked disabled
+        style="width:16px;height:16px;">
+      <label for="ov-design-link"
+        style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;
+        letter-spacing:0.08em;text-transform:uppercase;color:var(--mid);">
+        Email me my design link
+      </label>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin:8px 0;">
+      <input type="checkbox" id="ov-marketing-optin"
+        style="width:16px;height:16px;">
+      <label for="ov-marketing-optin"
+        style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;
+        letter-spacing:0.08em;text-transform:uppercase;color:var(--mid);">
+        Sign me up for twIIgs updates
+      </label>
     </div>
     <div class="ov-confirm" id="ov-confirm">Design saved — check your email ✓</div>
     <button class="btn ghost" style="width:100%;margin-top:14px;" onclick="closeOv()">Close</button>
@@ -2814,18 +2833,70 @@ function buildOvPoles() {
   el.innerHTML=`<div class="pole-col">${buildPoleHTML(S.p1,D,'x',false)}</div>
                 <div class="pole-col">${buildPoleHTML(S.p2,D,'x',false)}</div>`;
 }
-function submitSave() {
-  const email=document.getElementById('ov-email').value.trim();
-  if (!email||!email.includes('@')){ document.getElementById('ov-email').focus(); return; }
-  /* ── FORMSPREE ENDPOINT ────────────────────────────
-     Replace PLACEHOLDER with your Formspree form ID.
-     ─────────────────────────────────────────────── */
-  fetch('https://formspree.io/f/PLACEHOLDER',{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email, design_url:shareURL()})
-  }).catch(()=>{});
-  const el=document.getElementById('ov-confirm'); el.classList.add('show');
-  setTimeout(()=>closeOv(),2800);
+async function submitSave() {
+  const email = document.getElementById('ov-email').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('ov-email').focus();
+    return;
+  }
+
+  const designUrl = shareURL();
+  const marketingOptIn = document.getElementById('ov-marketing-optin').checked;
+
+  // Always add to Design Saves list with design URL as property
+  await fetch('https://a.klaviyo.com/client/subscriptions/?company_id=Yq7u24', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'revision': '2023-12-15' },
+    body: JSON.stringify({
+      data: {
+        type: 'subscription',
+        attributes: {
+          list_id: 'UkMqYU',
+          email_marketing: { consent: 'SUBSCRIBED' },
+          custom_source: 'Design Save',
+          properties: { design_url: designUrl }
+        },
+        relationships: {
+          list: { data: { type: 'list', id: 'UkMqYU' } }
+        }
+      }
+    })
+  });
+
+  // Track design saved event
+  window._learnq = window._learnq || [];
+  window._learnq.push(['identify', { '$email': email }]);
+  window._learnq.push(['track', 'Design Saved', {
+    design_url: designUrl,
+    email: email
+  }]);
+
+  // If marketing opt-in checked, also add to email list
+  if (marketingOptIn) {
+    await fetch('https://a.klaviyo.com/client/subscriptions/?company_id=Yq7u24', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'revision': '2023-12-15' },
+      body: JSON.stringify({
+        data: {
+          type: 'subscription',
+          attributes: {
+            list_id: 'UcWEqh',
+            email_marketing: { consent: 'SUBSCRIBED' },
+            custom_source: 'Marketing Opt-in'
+          },
+          relationships: {
+            list: { data: { type: 'list', id: 'UcWEqh' } }
+          }
+        }
+      })
+    });
+  }
+
+  // Show confirmation
+  const el = document.getElementById('ov-confirm');
+  el.textContent = 'Design saved — check your email ✓';
+  el.classList.add('show');
+  setTimeout(() => closeOv(), 2800);
 }
 function closeOv() { document.getElementById('ov-save').classList.remove('open'); }
 
