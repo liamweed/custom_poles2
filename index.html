@@ -14,6 +14,7 @@
 <meta name="twitter:title" content="twIIgs Custom Ski Poles">
 <meta name="twitter:description" content="Design your own custom ski poles">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/liamweed/custom_poles2/main/preview.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
 
@@ -2767,7 +2768,7 @@ function fireAffordance() {
    SHARE / SAVE / ORDER
    ══════════════════════════════════════════════════ */
 function encode() {
-  return btoa(JSON.stringify({v:3,mode:'scratch',p1:S.p1,p2:S.p2,big:[...S.big]}));
+  return LZString.compressToEncodedURIComponent(JSON.stringify({v:3,mode:'scratch',p1:S.p1,p2:S.p2,big:[...S.big]}));
 }
 function shareURL() {
   try {
@@ -2835,7 +2836,17 @@ function checkURL() {
   try {
     const p=new URLSearchParams(window.location.search);
     if (!p.has('d')) return;
-    const d=JSON.parse(atob(p.get('d')));
+    let d;
+    try {
+      const decompressed = LZString.decompressFromEncodedURIComponent(p.get('d'));
+      if (decompressed) {
+        d = JSON.parse(decompressed);
+      } else {
+        d = JSON.parse(atob(p.get('d')));
+      }
+    } catch(e) {
+      d = JSON.parse(atob(p.get('d')));
+    }
     resetState();
     S.p1  = d.p1||new Array(N).fill(BLACK);
     S.p2  = d.p2||new Array(N).fill(BLACK);
