@@ -2843,53 +2843,78 @@ async function submitSave() {
   const designUrl = shareURL();
   const marketingOptIn = document.getElementById('ov-marketing-optin').checked;
 
-  // Always add to Design Saves list with design URL as property
-  await fetch('https://a.klaviyo.com/client/subscriptions/?company_id=Yq7u24', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'revision': '2023-12-15' },
-    body: JSON.stringify({
-      data: {
-        type: 'subscription',
-        attributes: {
-          list_id: 'UkMqYU',
-          email_marketing: { consent: 'SUBSCRIBED' },
-          custom_source: 'Design Save',
-          properties: { design_url: designUrl }
-        },
-        relationships: {
-          list: { data: { type: 'list', id: 'UkMqYU' } }
-        }
-      }
-    })
-  });
-
-  // Track design saved event
+  // Identify the user and track the event via Klaviyo onsite JS
   window._learnq = window._learnq || [];
-  window._learnq.push(['identify', { '$email': email }]);
-  window._learnq.push(['track', 'Design Saved', {
-    design_url: designUrl,
-    email: email
+
+  // Identify with email and design URL as property
+  window._learnq.push(['identify', {
+    '$email': email,
+    'Design URL': designUrl
   }]);
 
-  // If marketing opt-in checked, also add to email list
-  if (marketingOptIn) {
+  // Track the Design Saved event
+  window._learnq.push(['track', 'Design Saved', {
+    '$email': email,
+    'design_url': designUrl
+  }]);
+
+  // Add to Design Saves list via Klaviyo v3 API
+  try {
     await fetch('https://a.klaviyo.com/client/subscriptions/?company_id=Yq7u24', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'revision': '2023-12-15' },
+      headers: {
+        'content-type': 'application/json',
+        'revision': '2024-02-15'
+      },
       body: JSON.stringify({
         data: {
           type: 'subscription',
           attributes: {
-            list_id: 'UcWEqh',
-            email_marketing: { consent: 'SUBSCRIBED' },
-            custom_source: 'Marketing Opt-in'
-          },
-          relationships: {
-            list: { data: { type: 'list', id: 'UcWEqh' } }
+            profile: {
+              data: {
+                type: 'profile',
+                attributes: {
+                  email: email,
+                  properties: {
+                    design_url: designUrl
+                  }
+                }
+              }
+            },
+            list_id: 'UkMqYU'
           }
         }
       })
     });
+  } catch(e) { console.error('Design saves list error:', e); }
+
+  // If marketing opt-in, also add to email list
+  if (marketingOptIn) {
+    try {
+      await fetch('https://a.klaviyo.com/client/subscriptions/?company_id=Yq7u24', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'revision': '2024-02-15'
+        },
+        body: JSON.stringify({
+          data: {
+            type: 'subscription',
+            attributes: {
+              profile: {
+                data: {
+                  type: 'profile',
+                  attributes: {
+                    email: email
+                  }
+                }
+              },
+              list_id: 'UcWEqh'
+            }
+          }
+        })
+      });
+    } catch(e) { console.error('Email list error:', e); }
   }
 
   // Show confirmation
