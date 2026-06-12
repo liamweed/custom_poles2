@@ -2839,7 +2839,7 @@ function klaviyoSubscribe(email, listId, properties) {
     xhr.open('POST',
       'https://a.klaviyo.com/client/subscriptions/?company_id=Yq7u24');
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('revision', '2023-02-22');
+    xhr.setRequestHeader('revision', '2024-06-15');
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4) {
         console.log('Klaviyo status:', xhr.status, xhr.responseText);
@@ -2848,20 +2848,40 @@ function klaviyoSubscribe(email, listId, properties) {
     };
     xhr.onerror = reject;
 
+    const profileAttributes = { email: email };
+    if (properties && Object.keys(properties).length > 0) {
+      Object.assign(profileAttributes, properties);
+    }
+
     const payload = {
       data: {
         type: 'subscription',
         attributes: {
-          list_id: listId,
-          email: email,
+          profile: {
+            data: {
+              type: 'profile',
+              attributes: profileAttributes,
+              subscriptions: {
+                email: {
+                  marketing: {
+                    consent: 'SUBSCRIBED'
+                  }
+                }
+              }
+            }
+          },
           custom_source: 'twIIgs Configurator'
+        },
+        relationships: {
+          list: {
+            data: {
+              type: 'list',
+              id: listId
+            }
+          }
         }
       }
     };
-
-    if (properties && Object.keys(properties).length > 0) {
-      payload.data.attributes.properties = properties;
-    }
 
     xhr.send(JSON.stringify(payload));
   });
