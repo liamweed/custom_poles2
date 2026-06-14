@@ -805,66 +805,130 @@ body {
 .ov-email-input::placeholder { color: var(--lite); }
 .ov-confirm { font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); opacity: 0; text-align: center; margin-top: 6px; transition: opacity var(--t); }
 .ov-confirm.show { opacity: 1; }
+.ov-spam { font-family: 'Barlow Condensed', sans-serif; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lite); opacity: 0; text-align: center; margin-top: 4px; transition: opacity var(--t); }
+.ov-confirm.show + .ov-spam { opacity: 1; }
+.save-popup {
+  display: none; position: fixed; inset: 0; z-index: 10000;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.5);
+  animation: savePopFade 0.2s ease;
+}
+.save-popup.open { display: flex; }
+@keyframes savePopFade { from { opacity: 0; } to { opacity: 1; } }
+.save-popup-box {
+  position: relative; background: #fff; border-radius: 12px;
+  padding: 32px; max-width: 320px; width: calc(100% - 40px);
+  text-align: center; box-shadow: var(--shl);
+}
+.save-popup-check {
+  font-size: 2.6rem; line-height: 1; color: var(--accent); margin-bottom: 12px;
+}
+.save-popup-title {
+  font-family: 'Anton', sans-serif; font-size: 1.4rem;
+  letter-spacing: 0.03em; text-transform: uppercase; color: var(--ink);
+  margin-bottom: 10px;
+}
+.save-popup-sub {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem;
+  letter-spacing: 0.03em; color: var(--mid); line-height: 1.4;
+}
+.save-popup-x {
+  position: absolute; top: 10px; right: 14px;
+  background: none; border: none; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.4rem; line-height: 1; color: var(--lite);
+}
+@media (hover:hover) { .save-popup-x:hover { color: var(--ink); } }
 @media (min-width:740px) {
   .ov { align-items: center; padding: 20px; }
   .ov-box { border-radius: 18px; padding-bottom: 32px; }
 }
 
 /* ══════════════════════════════════════════════
-   MOBILE WARNING BANNER (item 1 — shown via JS when width < 740px)
+   DESKTOP RECOMMENDATION MODAL (item 1 — shown once per session
+   via JS on load when width < 740px)
    ══════════════════════════════════════════════ */
-.mobile-warning {
+.desktop-prompt {
   display: none;
-  position: fixed; left: 0; right: 0; bottom: 0;
-  z-index: 400;
-  background: var(--ink); color: #fff;
-  padding: 14px 16px calc(14px + var(--safe-b));
-  align-items: center; gap: 12px; justify-content: space-between;
-  box-shadow: 0 -6px 28px rgba(0,0,0,0.22);
-  animation: sheetUp 0.28s cubic-bezier(0.32,0.72,0,1) both;
+  position: fixed; inset: 0;
+  z-index: 500;
+  background: rgba(0,0,0,0.85);
+  align-items: center; justify-content: center;
+  padding: 20px;
+  animation: savePopFade 0.2s ease;
 }
-.mobile-warning.show { display: flex; }
-.mobile-warning-text {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.84rem; font-weight: 600; letter-spacing: 0.03em;
-  line-height: 1.3;
+.desktop-prompt.show { display: flex; }
+.desktop-prompt-card {
+  background: #fff; border-radius: 16px;
+  padding: 32px 24px; max-width: 320px; width: 90%;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; box-shadow: var(--shl);
 }
-.mobile-warning-btn {
-  flex-shrink: 0;
+.desktop-prompt-logo {
+  height: 40px; margin-bottom: 20px;
+  color: #000; --logo-ii: #000;
+}
+.desktop-prompt-text {
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.9rem; color: var(--mid); line-height: 1.6;
+  margin-bottom: 24px;
+}
+.desktop-prompt-btn {
+  width: 100%;
   font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
-  background: #fff; color: var(--ink);
+  font-weight: 700; font-size: 0.9rem; letter-spacing: 0.12em; text-transform: uppercase;
+  background: var(--accent); color: #fff;
   border: none; border-radius: 5px;
-  padding: 10px 16px; min-height: 40px; cursor: pointer;
+  padding: 14px 16px; min-height: 48px; cursor: pointer;
   touch-action: manipulation;
 }
-.mobile-warning-btn:active { transform: scale(0.96); }
+.desktop-prompt-btn:active { transform: scale(0.97); }
 
 /* ══════════════════════════════════════════════
    MOBILE FIXES — all scoped to phones (≤739px). Desktop is untouched.
    ══════════════════════════════════════════════ */
 @media (max-width: 739px) {
 
-  /* ── Item 2: toolbar dictates its own height; poles fill the rest.
-     .cust-body is a column the exact height of the viewport minus the nav, and
-     never scrolls. The controls panel is flex-shrink:0 so it is exactly as tall
-     as its toolbar sections need; the poles-stage (flex:1) gets everything left
-     over. ── */
-  .cust-body {
+  /* ── Item 1: flexbox column layout — controls take exactly what they need,
+     poles get the rest. #s-cust is a full-height flex column; .cust-body grows
+     to fill below the nav; .controls-panel is content-sized (flex-shrink:0) and
+     .poles-stage (flex:1) absorbs everything left over. Fully automatic: more
+     control rows → shorter poles, fewer rows → taller poles. ── */
+  #s-cust.active {
+    height: 100dvh;
     display: flex; flex-direction: column;
-    height: calc(100dvh - var(--nav-h));
     overflow: hidden;
   }
-  .poles-stage {
-    flex: 1 1 0; min-height: 0; overflow: hidden;
-    position: relative;            /* anchors the absolutely-placed zoom-reset btn */
-    padding: 6px 10px;
+  .cust-body {
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
+    overflow: hidden;
   }
+  /* Item 1 + 3 + 4: poles-stage fills the leftover space (flex:1, min-height:0)
+     with no height of its own — no fixed/min/percentage height, no bottom
+     padding. getDynSz() sizes the rings to fit this height exactly, so at
+     default zoom nothing clips and overflow:hidden is safe. */
+  .poles-stage {
+    flex: 1; min-height: 0; overflow: hidden;
+    position: relative;            /* anchors the absolutely-placed zoom-reset btn */
+    padding: 0 10px;
+  }
+  /* Item 5: while zoomed in (scale > 1) the stage scrolls so every ring is
+     reachable by panning; the .zoomed class is toggled in applyZoom(). */
+  .poles-stage.zoomed { overflow: auto; }
+  /* Item 4: no margin on the wrap; keep room for both poles + their gap so
+     neither pole is squeezed and rings render at full width. */
+  .poles-stage .poles-wrap {
+    margin: 0;
+    min-width: min-content;
+  }
+  /* Item 1 + 4: controls take exactly their content height — nothing more. */
   .controls-panel {
     flex-shrink: 0;
+    height: auto;
     display: flex; flex-direction: column;
     justify-content: flex-end;     /* pin the toolbar + action bar to the bottom */
-    overflow: hidden;
+    overflow: visible;
   }
   /* Bottom-up stacking order inside the controls panel:
      action-bar (very bottom) → share-confirm → controls/toolbar block. */
@@ -1044,6 +1108,16 @@ body {
   transition: opacity 0.15s ease;
 }
 
+/* Item 2: mobile — single-line, smaller toast, kept centered in the middle of
+   the page (inherits the base top:50% / translate(-50%,-50%) centering). */
+@media (max-width: 739px) {
+  #toast {
+    white-space: nowrap;
+    font-size: 1.275rem;
+    padding: 12px 30px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1051,10 +1125,13 @@ body {
 <!-- ═══════════ TOAST NOTIFICATION ═══════════ -->
 <div id="toast" role="status" aria-live="polite"></div>
 
-<!-- ═══════════ MOBILE WARNING BANNER (item 1) ═══════════ -->
-<div id="mobile-warning" class="mobile-warning" role="region" aria-label="Display recommendation">
-  <span class="mobile-warning-text">For the best designing experience, use a laptop or desktop.</span>
-  <button class="mobile-warning-btn" onclick="dismissMobileWarning()">Got it</button>
+<!-- ═══════════ DESKTOP RECOMMENDATION MODAL (item 1) ═══════════ -->
+<div id="desktop-prompt" class="desktop-prompt" role="dialog" aria-modal="true" aria-label="Display recommendation">
+  <div class="desktop-prompt-card">
+    <svg class="logo-svg desktop-prompt-logo" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
+    <p class="desktop-prompt-text">For the best designing experience, use this tool on a laptop or desktop.</p>
+    <button class="desktop-prompt-btn" onclick="dismissMobileWarning()">Got it</button>
+  </div>
 </div>
 
 <!-- ═══════════ LOGO SVG SYMBOL ═══════════ -->
@@ -1391,7 +1468,18 @@ body {
       </label>
     </div>
     <div class="ov-confirm" id="ov-confirm">Design saved — check your email ✓</div>
+    <div class="ov-spam">If you don't see it, check your spam folder.</div>
     <button class="btn ghost" style="width:100%;margin-top:14px;" onclick="closeOv()">Close</button>
+  </div>
+</div>
+
+<div class="save-popup" id="save-popup" onclick="if(event.target===this)closeSavePopup()">
+  <div class="save-popup-box">
+    <button class="save-popup-x" onclick="closeSavePopup()" aria-label="Close">✕</button>
+    <div class="save-popup-check">✓</div>
+    <div class="save-popup-title">Your design is saved!</div>
+    <div class="save-popup-sub">Check your inbox for the link.</div>
+    <div class="save-popup-sub">Don't see it? Check your spam folder.</div>
   </div>
 </div>
 
@@ -1566,9 +1654,22 @@ function getDynSz() {
   const el = document.getElementById('poles-stage');
   if (!el) return SZ.land;
   const W=el.clientWidth, H=el.clientHeight;
-  const targetH = H * 0.88;
-  let h = (targetH - 40*0.9) / 44.6;
-  h = Math.max(3, Math.min(13, h));
+  let h;
+  if (window.innerWidth <= 739) {
+    /* Item 3: size rings so all 40 rings + 2px gaps + shaft fit inside the
+       stage height with no clipping, whatever height the flex layout gives us. */
+    const totalRings = 40;
+    const gapTotal = totalRings * 2;   // 2px gap per ring (matches mobile CSS)
+    const shaftH = 40;                  // approximate shaft height
+    const available = H - gapTotal - shaftH - 16;   // 16px breathing room
+    h = available / totalRings;
+    h = Math.max(3, Math.min(10, h));   // clamp 3–10px on mobile
+  } else {
+    /* Desktop sizing unchanged. */
+    const targetH = H * 0.88;
+    h = (targetH - 40*0.9) / 44.6;
+    h = Math.max(3, Math.min(13, h));
+  }
   let sw = Math.round(h*1.9), bw = Math.round(sw*1.55);
   let shh = Math.round(h*4.5), shw = Math.max(2,Math.round(sw*0.55));
   let capH = Math.max(4, Math.round(bw*CAP_H_R));
@@ -1960,6 +2061,13 @@ function initCustomiser() {
   buildConstraintToggles();
   buildSlotRow();
   refreshPoles();
+
+  /* Item 2: re-fit the poles whenever the stage's height changes — i.e. whenever
+     the controls panel grows or shrinks. A ResizeObserver tracks this precisely,
+     replacing the coarse window-resize debounce for the in-editor case. */
+  if (window._polesObserver) window._polesObserver.disconnect();
+  window._polesObserver = new ResizeObserver(() => { refreshPoles(); });
+  window._polesObserver.observe(document.getElementById('poles-stage'));
 
   /* ══════════════════════════════════════════════════
      TOUCH — drag-paint + pinch / double-tap zoom (mobile).
@@ -2918,13 +3026,22 @@ async function submitSave() {
     await klaviyoSubscribe(email, 'UcWEqh', {});
   }
 
-  // Show confirmation
-  const el = document.getElementById('ov-confirm');
-  el.textContent = 'Design saved — check your email ✓';
-  el.classList.add('show');
-  setTimeout(() => closeOv(), 2800);
+  // Show confirmation popup
+  showSavePopup();
 }
 function closeOv() { document.getElementById('ov-save').classList.remove('open'); }
+
+let savePopupTimer = null;
+function showSavePopup() {
+  closeOv();   // never show the save overlay and popup at the same time
+  document.getElementById('save-popup').classList.add('open');
+  clearTimeout(savePopupTimer);
+  savePopupTimer = setTimeout(closeSavePopup, 6000);
+}
+function closeSavePopup() {
+  clearTimeout(savePopupTimer);
+  document.getElementById('save-popup').classList.remove('open');
+}
 
 /* ══════════════════════════════════════════════════
    URL RESTORE
@@ -2959,22 +3076,26 @@ function checkURL() {
 let _rz;
 window.addEventListener('resize',()=>{
   clearTimeout(_rz);
+  /* Item 2: on mobile the ResizeObserver on #poles-stage handles in-editor
+     re-fitting more precisely, so skip the debounced resize refresh there.
+     Desktop keeps the window-resize refresh unchanged. */
+  if (window.innerWidth <= 739) return;
   _rz=setTimeout(()=>{ if(document.getElementById('s-cust').classList.contains('active')) refreshPoles(); },120);
 });
 
 /* ══════════════════════════════════════════════════
-   MOBILE WARNING BANNER (item 1) — once per session, width < 740px
+   DESKTOP RECOMMENDATION MODAL (item 1) — once per session, width < 740px
    ══════════════════════════════════════════════════ */
-const MOBILE_WARN_KEY = 'twiigs_mobile_warning_dismissed';
+const MOBILE_WARN_KEY = 'twiigs_desktop_prompt';
 function dismissMobileWarning() {
-  const el = document.getElementById('mobile-warning');
+  const el = document.getElementById('desktop-prompt');
   if (el) el.classList.remove('show');
   try { sessionStorage.setItem(MOBILE_WARN_KEY, '1'); } catch(e){}
 }
 function maybeShowMobileWarning() {
   try { if (sessionStorage.getItem(MOBILE_WARN_KEY)) return; } catch(e){}
   if (window.innerWidth < 740) {
-    const el = document.getElementById('mobile-warning');
+    const el = document.getElementById('desktop-prompt');
     if (el) el.classList.add('show');
   }
 }
