@@ -1664,11 +1664,12 @@ function getDynSz() {
     const labelHeight = 20;                  // POLE 1 / POLE 2 label
     const gapsHeight  = 39 * gapSize;        // 39 gaps between 40 rings (not 40)
     // provisional h to derive the shaft height (shaftHeight = D.shh = 4.5·h)
-    const h0 = Math.max(3, Math.min(10, (H - gapsHeight - labelHeight - 40) / 40));
+    const h0 = Math.max(3, Math.min(14, (H - gapsHeight - labelHeight - 40) / 40));
     const shaftHeight = Math.round(h0 * 4.5);
     const availableH = H - shaftHeight - labelHeight - gapsHeight;
     h = availableH / 40;
-    h = Math.max(3, Math.min(10, h));        // clamp 3–10px on mobile
+    h = Math.max(3, Math.min(14, h));        // clamp 3–14px on mobile (lets poles grow to fill)
+    console.log('[getDynSz] stageH=', H, 'calc h=', Math.round(h*10)/10);
   } else {
     /* Desktop sizing unchanged. */
     const targetH = H * 0.88;
@@ -2071,7 +2072,11 @@ function initCustomiser() {
      the controls panel grows or shrinks. A ResizeObserver tracks this precisely,
      replacing the coarse window-resize debounce for the in-editor case. */
   if (window._polesObserver) window._polesObserver.disconnect();
-  window._polesObserver = new ResizeObserver(() => { refreshPoles(); });
+  window._polesObserver = new ResizeObserver(() => {
+    // rAF: re-fit AFTER the browser finishes laying out the (just-resized) stage,
+    // so getDynSz() reads the final stageH rather than a mid-settle value.
+    requestAnimationFrame(() => refreshPoles());
+  });
   window._polesObserver.observe(document.getElementById('poles-stage'));
 
   /* ══════════════════════════════════════════════════
