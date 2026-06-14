@@ -672,6 +672,12 @@ body {
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid);
 }
 .ledge-brush-count .lc-num { color: var(--ink); }
+.ledge-spacing-learn {
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-family: 'Barlow Condensed',sans-serif; font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--lite);
+  text-decoration: underline; text-underline-offset: 2px;
+}
 .ledge-brush-count.flash { animation: ledgeLimitFlash 0.45s ease 0s 2; }
 @keyframes ledgeLimitFlash {
   0%,100% { color: var(--mid); transform: scale(1); }
@@ -839,6 +845,23 @@ body {
   font-size: 1.4rem; line-height: 1; color: var(--lite);
 }
 @media (hover:hover) { .save-popup-x:hover { color: var(--ink); } }
+.spacing-popup {
+  display: none; position: fixed; inset: 0; z-index: 10000;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.5);
+  animation: savePopFade 0.2s ease;
+}
+.spacing-popup.open { display: flex; }
+.spacing-popup-box {
+  position: relative; background: #fff; border-radius: 12px;
+  padding: 28px 24px; max-width: 320px; width: 90%;
+  box-shadow: var(--shl);
+}
+.spacing-popup-text {
+  font-family: 'Barlow', sans-serif; font-size: 0.88rem;
+  color: var(--ink); line-height: 1.65; margin: 0 0 12px;
+}
+.spacing-popup-text:last-child { margin-bottom: 0; }
 @media (min-width:740px) {
   .ov { align-items: center; padding: 20px; }
   .ov-box { border-radius: 18px; padding-bottom: 32px; }
@@ -977,8 +1000,13 @@ body {
     max-height: none; margin-bottom: 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .ledge-brush-panel            { max-height: 120px; gap: 10px; padding: 10px 12px; overflow: hidden; }
-  .ledge-brush-opt              { padding: 8px 16px; }
+  .ledge-brush-panel            { max-height: 120px; gap: 8px; padding: 10px 12px; overflow: hidden; }
+  /* Shorter shape-selector cards on mobile — smaller icons, RING/LEDGE labels kept
+     below, cards still side by side, and the "LEDGES 0/6" counter stays visible. */
+  .ledge-brush-opt              { max-height: 80px; padding: 8px 14px; gap: 4px; min-width: 0; }
+  .ledge-brush-shape            { height: auto; }
+  .ledge-brush-shape .ring-svg  { max-width: 40px; height: auto; }
+  .ledge-brush-lbl              { font-size: 0.72rem; }
 
   /* ── Item 3: reset-zoom button — only visible while zoomed in ── */
   .poles-stage .zoom-reset-btn        { display: none; }
@@ -1484,6 +1512,15 @@ body {
     <div class="save-popup-title">Your design is saved!</div>
     <div class="save-popup-sub">Check your inbox for the link.</div>
     <div class="save-popup-sub">Don't see it? Check your spam folder.</div>
+  </div>
+</div>
+
+<div class="spacing-popup" id="spacing-popup" onclick="if(event.target===this)closeSpacingPopup()">
+  <div class="spacing-popup-box">
+    <button class="save-popup-x" onclick="closeSpacingPopup()" aria-label="Close">✕</button>
+    <p class="spacing-popup-text">The ledges are wider than the rings, which creates the points of leverage along the pole. The default configuration is what we've found works best for most people, but you can move them to wherever feels right.</p>
+    <p class="spacing-popup-text">If you want to fit the spaces to your hand size exactly, rings and ledges are each 12mm tall.</p>
+    <p class="spacing-popup-text">If you change your mind after your poles arrive, the rings and ledges slide off and reposition by hand, so no stress!</p>
   </div>
 </div>
 
@@ -2732,7 +2769,8 @@ function renderLedgeBrush() {
         <div class="ledge-brush-lbl">Ledge</div>
       </button>
     </div>
-    <div class="ledge-brush-count" id="ledge-brush-count">Ledges <span class="lc-num">${count}</span> / ${MAX_LEDGE}</div>`;
+    <div class="ledge-brush-count" id="ledge-brush-count">Ledges <span class="lc-num">${count}</span> / ${MAX_LEDGE}</div>
+    <button class="ledge-spacing-learn" onclick="openSpacingPopup()">Learn more about spacing</button>`;
 }
 function selectLedgeBrush(shape) {
   S.ledgeBrush = shape;
@@ -3059,6 +3097,12 @@ function showSavePopup() {
 function closeSavePopup() {
   clearTimeout(savePopupTimer);
   document.getElementById('save-popup').classList.remove('open');
+}
+function openSpacingPopup() {
+  document.getElementById('spacing-popup').classList.add('open');
+}
+function closeSpacingPopup() {
+  document.getElementById('spacing-popup').classList.remove('open');
 }
 
 /* ══════════════════════════════════════════════════
