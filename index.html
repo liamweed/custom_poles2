@@ -1118,8 +1118,10 @@ body {
      also keeps s-e-pat-choice constant as its palette cycles 3↔4 colours. ── */
   .card-grid-3 .flow-card { height: 38vw; max-height: 220px; }
   /* Style (pattern) picker cards are 50% taller than palette cards */
-  #s-e-pat .card-grid-3 .flow-card,
   #s-e-pal-patterns .card-grid-3 .flow-card { height: 57vw; max-height: 330px; }
+  /* "Start with a style" picker: cards 50% taller again so the pole previews read
+     bigger (57vw × 1.5 ≈ 85.5vw, 330px × 1.5 = 495px). Mobile-only. */
+  #s-e-pat .card-grid-3 .flow-card { height: 85.5vw; max-height: 495px; }
   #s-e-pat-choice .flow-card-visual { overflow: hidden; }
 
   /* ── Item 6: "Use all colours" 4×4 grid scaled down to fit inside its card ── */
@@ -1885,9 +1887,19 @@ function szForEl(el, fill = 0.88) {
   return D;
 }
 
-/* Build a poles-wrap HTML sized to fit a given element */
-function polesHTMLForCard(palIdx, patIdx, el, fill = 0.88) {
-  const D = szForEl(el, fill);
+/* Scale every dimension of a size object by `k` — nudges card-preview poles
+   larger/smaller without re-deriving the height/width fit. */
+function scaleD(D, k) {
+  const s = v => Math.round(v * k * 10) / 10;
+  return { ...D, sw:s(D.sw), bw:s(D.bw), h:s(D.h), shw:s(D.shw), shh:s(D.shh),
+    capH:s(D.capH), ringGap: D.ringGap!=null ? s(D.ringGap) : D.ringGap };
+}
+
+/* Build a poles-wrap HTML sized to fit a given element. `scale` nudges the poles
+   larger/smaller on top of the fitted size (1 = exact fit). */
+function polesHTMLForCard(palIdx, patIdx, el, fill = 0.88, scale = 1) {
+  let D = szForEl(el, fill);
+  if (scale !== 1) D = scaleD(D, scale);
   return `<div class="poles-wrap">${buildPolesFromPattern(palIdx, patIdx, [], D)}</div>`;
 }
 let _palAnim=null, _palAnimIdx=0;
@@ -1991,7 +2003,7 @@ function initLanding() {
     /* Double rAF so the card is fully painted and at its final height before we
        measure once; the stored D is then reused for every cycle (no re-measure). */
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      const D = szForEl(patVis);
+      const D = scaleD(szForEl(patVis), 1.15);   // landing card: poles 15% larger
       const draw = idx => `<div class="poles-wrap">${buildPolesFromPattern(PATTERNS[idx].defaultPalette, idx, [], D)}</div>`;
       patVis.innerHTML = draw(0);
       const render = () => {
@@ -2007,7 +2019,7 @@ function initLanding() {
     scrVis._built = true;
     /* Double rAF so the container has its final dimensions before measuring once */
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      const D = szForEl(scrVis);
+      const D = scaleD(szForEl(scrVis), 1.15);   // landing card: poles 15% larger
       scrVis.innerHTML = blackPolesHTML(D);
     }));
   }
@@ -2075,13 +2087,16 @@ function initPatPicker(gridId, handlerName) {
   }).join('');
   // Render poles after layout settles. Double rAF so the fixed card/visual height
   // is final before we measure each visual and size its poles to match.
+  // "Start with a style" path (pat-grid) on mobile: cards are 50% taller, so also
+  // enlarge the poles within them beyond the proportional growth.
+  const poleScale = (gridId === 'pat-grid' && isMobile()) ? 1.2 : 1;
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     grid.querySelectorAll('.flow-card-visual[data-pat]').forEach(el => {
       const pi  = +el.dataset.pat;
       const pal = +el.dataset.pal;
       // Tall style-picker cards: fill 0.78 of the visual so poles keep a clear
       // top/bottom margin and never look clipped against the card edges.
-      el.innerHTML = polesHTMLForCard(pal, pi, el, 0.78);
+      el.innerHTML = polesHTMLForCard(pal, pi, el, 0.78, poleScale);
     });
   }));
 }
