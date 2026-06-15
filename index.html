@@ -154,14 +154,31 @@ body {
 }
 @media (max-width: 380px) { .card-grid { grid-template-columns: 1fr; } }
 
-/* 3-card grid: single column on mobile, single row on desktop */
+/* 3-up card grid: 1 col on mobile, 3 cols on desktop. NOT flex:1 — the grid is
+   content-height so its fixed-height cards never stretch to fill the screen.
+   ≤3 cards sit at the top; >3 wrap into more rows and card-screen-body scrolls. */
 .card-grid-3 {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 8px; flex: 1; min-height: 0;
+  grid-auto-rows: auto;     /* content-height rows so each card's fixed height wins */
+  align-content: start;     /* don't stretch the row block to fill the body */
+  gap: 8px; min-height: 0;
 }
 @media (min-width: 600px) {
   .card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* Item 2: every card in a 3-up grid (style + palette pickers) is one fixed size,
+   so pole previews and palette swatches stay identical across all cards. */
+.card-grid-3 .flow-card {
+  height: 280px;
+  align-self: start;        /* keep the fixed height even if a track is taller */
+  min-height: 0;
+}
+/* Style (pattern) picker cards are 50% taller than palette cards */
+#s-e-pat .card-grid-3 .flow-card,
+#s-e-pal-patterns .card-grid-3 .flow-card {
+  height: 420px;
 }
 
 .flow-card {
@@ -1084,30 +1101,25 @@ body {
   .pole-rings { gap: 1px !important; overflow: visible; }
   .pole-rings .ring-svg { margin: 0 !important; padding: 0 !important; }
 
-  /* ── Palette picker cards equal height, swatches centered (kept) ── */
-  #s-e-pal .card-grid-3,
-  #s-e-pat-palettes .card-grid-3 {
-    grid-auto-rows: 1fr;
-  }
+  /* ── Palette picker swatches centered (kept) ── */
   #s-e-pal .flow-card-visual,
   #s-e-pat-palettes .flow-card-visual {
     align-items: center; justify-content: center;
   }
 
-  /* ── Pattern picker cards — 2 per row, taller, bigger previews (kept) ── */
+  /* ── Pattern (style) picker cards — 2 per row on mobile ── */
   #s-e-pat .card-grid-3,
   #s-e-pal-patterns .card-grid-3 {
     grid-template-columns: 1fr 1fr;
-    grid-auto-rows: 1fr;
-  }
-  #s-e-pat .flow-card,
-  #s-e-pal-patterns .flow-card {
-    min-height: 280px;
   }
 
-  /* ── Item 5: colour-choice cards (s-e-pat-choice) keep a constant height even
-     as the palette cycles between 3 and 4 colours ── */
-  #s-e-pat-choice .card-grid-3 .flow-card { height: 38vw; }
+  /* ── Item 2 (mobile): one fixed card size for every 3-up grid card so style
+     pole previews and palette swatches stay identical; >3 cards scroll. This
+     also keeps s-e-pat-choice constant as its palette cycles 3↔4 colours. ── */
+  .card-grid-3 .flow-card { height: 38vw; max-height: 220px; }
+  /* Style (pattern) picker cards are 50% taller than palette cards */
+  #s-e-pat .card-grid-3 .flow-card,
+  #s-e-pal-patterns .card-grid-3 .flow-card { height: 57vw; max-height: 330px; }
   #s-e-pat-choice .flow-card-visual { overflow: hidden; }
 
   /* ── Item 6: "Use all colours" 4×4 grid scaled down to fit inside its card ── */
@@ -1221,7 +1233,7 @@ body {
       </div>
       <div class="flow-card" onclick="goTo('e-pat')">
         <div class="flow-card-visual" id="land-pat-vis"></div>
-        <div class="flow-card-footer"><div class="flow-card-label">Start with a pattern</div></div>
+        <div class="flow-card-footer"><div class="flow-card-label">Start with a style</div></div>
       </div>
       <div class="flow-card" onclick="startScratch()">
         <div class="flow-card-visual" id="land-scratch-vis"></div>
@@ -1587,8 +1599,15 @@ const PALETTES = PAL_IDX.map(arr => arr.map(i => COLORS[i]));
 
 /* ══════════════════════════════════════════════════
    ── EDIT PATTERNS HERE ──
-   3 patterns. slot indices reference the palette.
+   7 patterns. p1/p2 hold per-ring slot indices.
    defaultPalette: which palette loads with "use default colors".
+   Optional fields (used by the 4 multi-colour styles below):
+     palette: array of literal hex colours the slot indices map into,
+              independent of PALETTES (so a style can use the full
+              colour range, not just a 3–6 colour palette).
+     ledges:  array of ring positions that render as ledges, overriding
+              the default [0,10,19,28,34,39].
+   Patterns without these fields behave exactly as before.
    ══════════════════════════════════════════════════ */
 const PATTERNS = [
   {
@@ -1605,6 +1624,38 @@ const PATTERNS = [
     defaultPalette: 0,
     p1:[1,0,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0, 1,0,2,0, 0,1],
     p2:[2,0,0,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0,0, 2,0,0,0,0,0, 2,0,1,0, 0,2]
+  },
+  /* 4 — Rainbow: identical poles, 7-colour sequence repeating top→bottom */
+  {
+    defaultPalette: 0,
+    palette: ['#DB281A','#FF8C10','#F7D458','#B7D2A9','#8CBDE8','#31577A','#641C4E'],
+    ledges: [0,10,19,28,34,39],
+    p1:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,4],
+    p2:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,4]
+  },
+  /* 5 — Gradient: P1 warm→cool, P2 cool→warm (inverse) */
+  {
+    defaultPalette: 0,
+    palette: ['#DB281A','#FF8C10','#F7D458','#B7D2A9','#8CBDE8','#31577A','#641C4E'],
+    ledges: [0,10,19,28,34,39],
+    p1:[0,0,0,0,0,0,1,1,1,1, 1,2,2,2,2,3,3,3,3,3, 4,4,4,4,5,5,5,5,5,6, 6,6,6,6,6,6,6,6,6,6],
+    p2:[6,6,6,6,6,6,5,5,5,5, 5,4,4,4,4,3,3,3,3,3, 2,2,2,2,1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0]
+  },
+  /* 6 — Almond Burst: almond base, colour burst rings 29-35, accent ring 3 */
+  {
+    defaultPalette: 0,
+    palette: ['#DDCBA4','#DB281A','#FF8C10','#F7D458','#B7D2A9','#8CBDE8','#31577A','#641C4E'],
+    ledges: [0,10,19],
+    p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0],
+    p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0]
+  },
+  /* 7 — Blackout Burst: same as Almond Burst with a black base */
+  {
+    defaultPalette: 0,
+    palette: ['#000000','#DB281A','#FF8C10','#F7D458','#B7D2A9','#8CBDE8','#31577A','#641C4E'],
+    ledges: [0,10,19],
+    p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0],
+    p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0]
   }
 ];
 PATTERNS.forEach(p => { ['p1','p2'].forEach(k => { while(p[k].length<40)p[k].push(0); p[k]=p[k].slice(0,40); }); });
@@ -1760,12 +1811,14 @@ function buildPoleHTML(hexArr, D, poleKey, interactive) {
 
 function buildPolesFromPattern(palIdx, patIdx, sc, D) {
   const pat = PATTERNS[patIdx];
-  const hex = (arr, i) => PALETTES[palIdx][arr[i] % PALETTES[palIdx].length].hex;
+  const palHex = pat.palette ? pat.palette : PALETTES[palIdx].map(c => c.hex);
+  const bigSet = pat.ledges ? new Set(pat.ledges) : DEF_BIG;
+  const hex = (arr, i) => palHex[arr[i] % palHex.length];
   const buildStatic = arr => {
     let r='';
     arr.forEach((si,i) => {
       const bg    = hex(arr,i);
-      const big   = DEF_BIG.has(i);
+      const big   = bigSet.has(i);
       const isCap = i===0;
       const w     = (big||isCap) ? D.bw : D.sw;
       r += buildRingSVG(big, isCap, w, D.h, bg, '', '');
@@ -1795,8 +1848,11 @@ function blackPolesHTML(D) {
   </div>`;
 }
 
-/* Get pole size fitted to a card visual element */
-function szForEl(el) {
+/* Get pole size fitted to a card visual element.
+   `fill` = fraction of the visual height the pole stack should occupy (default
+   0.88). Taller cards (the style picker) pass a smaller fill so the poles keep a
+   clear top/bottom margin and never look clipped against the card edges. */
+function szForEl(el, fill = 0.88) {
   if (!el) return SZ.land;
   let h = el.clientHeight;
   if (!h || h < 20) {
@@ -1805,10 +1861,15 @@ function szForEl(el) {
     h = el.parentElement?.clientHeight || 120;
     if (h < 20) h = 120;
     h = Math.max(60, h - 40);
+  } else {
+    // clientHeight includes the visual's vertical padding; the poles live in the
+    // content box, so size to the content height so the shaft is never clipped.
+    const cs = getComputedStyle(el);
+    h -= (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
   }
-  // Size the pole stack to fill ~88% of the card's height so the poles fill the
-  // card visual area, while still leaving a little headroom top & bottom.
-  let D = szForHeight(h * 0.88);
+  // Size the pole stack to fill `fill` of the card's height so the poles fill the
+  // card visual area, while still leaving headroom top & bottom.
+  let D = szForHeight(h * fill);
   // Mobile: also guarantee BOTH poles fit the card width so neither is clipped by
   // .flow-card-visual's overflow:hidden. Scale the pole down proportionally if the
   // pair (2 ledges + inter-pole gap) would overflow.
@@ -1818,15 +1879,15 @@ function szForEl(el) {
       const interGap = Math.round(w * 0.03);   // matches the CSS gap:3% between poles
       const needed   = 2 * D.bw + interGap + 12;
       const avail    = w * 0.9;
-      if (needed > avail) D = szForHeight(h * 0.88 * (avail / needed));
+      if (needed > avail) D = szForHeight(h * fill * (avail / needed));
     }
   }
   return D;
 }
 
 /* Build a poles-wrap HTML sized to fit a given element */
-function polesHTMLForCard(palIdx, patIdx, el) {
-  const D = szForEl(el);
+function polesHTMLForCard(palIdx, patIdx, el, fill = 0.88) {
+  const D = szForEl(el, fill);
   return `<div class="poles-wrap">${buildPolesFromPattern(palIdx, patIdx, [], D)}</div>`;
 }
 let _palAnim=null, _palAnimIdx=0;
@@ -1850,9 +1911,9 @@ function goTo(id) {
 const E = { palette:null, pattern:null };
 
 /* Named pick handlers — called from card onclick */
-function pickPaletteColorPath(i) { E.palette=i; goTo('e-pal-choice'); }
+function pickPaletteColorPath(i) { E.palette=i; launchFromPalette(null); }
 function pickPatternColorPath(i)  { launchFromPalette(i); }
-function pickPatternPatPath(i)    { E.pattern=i; goTo('e-pat-choice'); }
+function pickPatternPatPath(i)    { E.pattern=i; launchFromPattern('all'); }
 function pickPalettePatPath(i)    { E.palette=i; launchFromPattern('palette'); }
 
 /* ── Screen inits ── */
@@ -2012,14 +2073,17 @@ function initPatPicker(gridId, handlerName) {
       <div class="flow-card-visual" data-pat="${i}" data-pal="${palIdx}"></div>
     </div>`;
   }).join('');
-  // Render poles after DOM is painted so we can measure card height
-  requestAnimationFrame(()=>{
+  // Render poles after layout settles. Double rAF so the fixed card/visual height
+  // is final before we measure each visual and size its poles to match.
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
     grid.querySelectorAll('.flow-card-visual[data-pat]').forEach(el => {
       const pi  = +el.dataset.pat;
       const pal = +el.dataset.pal;
-      el.innerHTML = polesHTMLForCard(pal, pi, el);
+      // Tall style-picker cards: fill 0.78 of the visual so poles keep a clear
+      // top/bottom margin and never look clipped against the card edges.
+      el.innerHTML = polesHTMLForCard(pal, pi, el, 0.78);
     });
-  });
+  }));
 }
 
 /* ── Launch functions ── */
@@ -2068,13 +2132,14 @@ function startScratch() {
 }
 
 function applyPattern(patIdx, palIdx) {
-  const pat = PATTERNS[patIdx], pal = PALETTES[palIdx];
-  S.p1 = pat.p1.map(si => pal[si % pal.length].hex);
-  S.p2 = pat.p2.map(si => pal[si % pal.length].hex);
+  const pat = PATTERNS[patIdx];
+  const palHex = pat.palette ? pat.palette : PALETTES[palIdx].map(c => c.hex);
+  S.p1 = pat.p1.map(si => palHex[si % palHex.length]);
+  S.p2 = pat.p2.map(si => palHex[si % palHex.length]);
   /* record each ring's raw pattern slot index so slot mode can group rings */
   S.slotP1 = pat.p1.slice();
   S.slotP2 = pat.p2.slice();
-  S.big = new Set(DEF_BIG);
+  S.big = new Set(pat.ledges ? pat.ledges : DEF_BIG);
 }
 
 function resetState() {
