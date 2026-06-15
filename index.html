@@ -333,12 +333,6 @@ body {
 }
 .ring-svg.tap:active { transform: scaleX(0.93); }
 @media (hover:hover) { .ring-svg.tap:hover { opacity: 0.78; transform: scaleX(1.06); } }
-.ring-svg.sel {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
-  transform: scaleX(1.1) !important;
-  z-index: 2;
-}
 .ring-svg.paint-preview { outline: 2px dashed var(--accent); outline-offset: 2px; }
 .pole-shaft { border-radius: 0 0 4px 4px; background: #1E1E1E; flex-shrink: 0; }
 @keyframes affPulse {
@@ -1705,8 +1699,6 @@ const S = {
   p2:          new Array(N).fill(BLACK),
   big:         new Set(DEF_BIG),
   history:     [],
-  selPole:     null,   // 'p1'|'p2'
-  selIdx:      null,
   activeColor: null,   // hex string of currently selected paint color
   pendingTool: null,   // 'all-one' (one-shot, waits for a color pick)
   fillMode:    false,  // true = Fill toggle is ON; taps flood matching colors
@@ -1828,12 +1820,11 @@ function buildPoleHTML(hexArr, D, poleKey, interactive) {
   const slotArr = poleKey==='p1' ? S.slotP1 : S.slotP2;
   let rings = '';
   hexArr.forEach((hex,i) => {
-    const sel    = interactive && S.selPole===poleKey && S.selIdx===i;
     const inSlot = interactive && !S.adjustLedgesMode && S.slotMode && S.activeSlot!==null && slotArr && slotArr[i]===S.activeSlot;
     const big    = S.big.has(i);
     const isCap  = i===0;
     const w      = (big || isCap) ? D.bw : D.sw;
-    const cls    = interactive ? `tap${sel?' sel':''}${inSlot?' slot-hl':''}` : '';
+    const cls    = interactive ? `tap${inSlot?' slot-hl':''}` : '';
     const onclick = interactive ? `onclick="ringClick('${poleKey}',${i})"` : '';
     const dataPole = interactive ? `data-pole="${poleKey}" data-idx="${i}"` : '';
     rings += buildRingSVG(big, isCap, w, D.h, hex, cls, `${onclick} ${dataPole}`);
@@ -2198,7 +2189,6 @@ function resetState() {
   S.p2 = new Array(N).fill(BLACK);
   S.big = new Set(DEF_BIG);
   S.history = [];
-  S.selPole = null; S.selIdx = null;
   S.activeColor = null;
   S.pendingTool = null;
   S.fillMode = false;
@@ -2463,7 +2453,7 @@ function updateActiveColorBar() {
     sw.style.background  = S.activeColor;
     const c = COLORS.find(x=>x.hex.toLowerCase()===S.activeColor.toLowerCase());
     lbl.textContent = c ? c.name : 'Custom';
-    hint.textContent = S.selPole!==null ? 'tap or drag rings' : 'now tap or drag rings';
+    hint.textContent = 'tap or drag rings';
   } else {
     sw.style.background  = 'transparent';
     lbl.textContent = 'Pick a color below';
@@ -2570,7 +2560,6 @@ function toggleEditMode() {
     /* → back to the selected pattern's slot editing */
     S.slotMode = true;
     S.activeColor = null;
-    S.selPole = null; S.selIdx = null;
   }
   buildSlotRow();
   buildConstraintToggles();
@@ -2627,12 +2616,6 @@ function selectColor(hex, name) {
     return;
   }
   buildColorPicker();
-  /* Free mode: if a ring is already selected, paint it immediately */
-  if (!S.slotMode && S.selPole!==null && S.selIdx!==null) {
-    pushHistory();
-    paintRing(S.selPole, S.selIdx, hex);
-    refreshPoles();
-  }
   updateActiveColorBar();
 }
 
@@ -2646,36 +2629,22 @@ function ringClick(poleKey, idx) {
   /* Fill toggle ON: flood every matching color across both poles (works in free & slot mode) */
   if (S.fillMode) { applyFlood(poleKey, idx); return; }
 
-  /* Slot mode: tapping a ring just selects it (so the ledge toggle can act on it);
-     recoloring happens through the slot row, never by painting a single ring */
-  if (S.slotMode) {
-    S.selPole=poleKey; S.selIdx=idx;
-    refreshPoles(); updateRingInfo();
-    return;
-  }
+  /* Slot mode: recoloring happens through the slot row, never by tapping a single ring */
+  if (S.slotMode) return;
 
-  /* If a color is active, paint immediately */
+  /* Free mode: if a color is active, paint immediately */
   if (S.activeColor) {
     const prev = poleKey==='p1' ? S.prevP1 : S.prevP2;
     const cur = (poleKey==='p1'?S.p1:S.p2)[idx];
-    /* Tapping a ring that already has the active color: if it has a stored
-       previous color, revert to it (paintRing handles the swap); otherwise just
-       select the ring so the ring/ledge toggle can act on it. */
-    if (cur.toLowerCase()===S.activeColor.toLowerCase() && !(idx in prev)) {
-      S.selPole=poleKey; S.selIdx=idx;
-      refreshPoles(); updateRingInfo();
-      return;
-    }
+    /* Tapping a ring that already has the active color with no stored previous
+       color does nothing (paintRing only reverts when there's a prev to restore). */
+    if (cur.toLowerCase()===S.activeColor.toLowerCase() && !(idx in prev)) return;
     pushHistory();
     paintRing(poleKey, idx, S.activeColor);
-    /* keep ring selected for visual feedback */
-    S.selPole=poleKey; S.selIdx=idx;
-    refreshPoles(); updateRingInfo();
+    refreshPoles();
     return;
   }
-  /* No color active — just select the ring */
-  S.selPole=poleKey; S.selIdx=idx;
-  refreshPoles(); updateRingInfo();
+  /* No color active — nothing to do */
 }
 
 function paintRing(poleKey, idx, hex) {
@@ -2725,34 +2694,13 @@ function getRingFromEvent(e) {
   return { pole: el.dataset.pole, idx: +el.dataset.idx };
 }
 
-/* ── Ring nav ── */
-function navRing(dir) {
-  if (S.selPole===null) return;
-  let idx=S.selIdx, pole=S.selPole;
-  idx+=dir;
-  if (idx<0 && pole==='p2')       { pole='p1'; idx=N-1; }
-  else if (idx>=N && pole==='p1') { pole='p2'; idx=0; }
-  else if (idx<0||idx>=N)         return;
-  S.selPole=pole; S.selIdx=idx;
-  refreshPoles(); updateRingInfo();
-}
+/* ── Ring nav ── (ring selection removed — kept inert for the now-hidden nav buttons) */
+function navRing(dir) {}
 
+/* Ring selection was removed, so the info/nav row never has anything to show —
+   keep it hidden. Call sites are left in place so this stays a safe no-op. */
 function updateRingInfo() {
-  const row = document.getElementById('ring-info-row');
-  const lbl = document.getElementById('ring-info-lbl');
-  const pBtn= document.getElementById('ring-prev-btn');
-  const nBtn= document.getElementById('ring-next-btn');
-  const has = S.selPole!==null;
-  row.classList.toggle('hidden', !has);
-  if (!has) return;
-  const isCap = S.selIdx===0;
-  const big   = S.big.has(S.selIdx);
-  const pLabel= S.selPole==='p1'?'Pole 1':'Pole 2';
-  const rLabel= isCap?'Pommel Cap':big?'Ledge Disc':'Ring';
-  lbl.innerHTML = `<strong>${pLabel}</strong> · ${rLabel} ${S.selIdx+1}`;
-  pBtn.disabled = S.selPole==='p1' && S.selIdx===0;
-  nBtn.disabled = S.selPole==='p2' && S.selIdx===N-1;
-  /* Ring/ledge size is changed only via the Adjust Ledges tool — no per-ring toggle here. */
+  document.getElementById('ring-info-row')?.classList.add('hidden');
 }
 
 /* ══════════════════════════════════════════════════
@@ -2979,7 +2927,6 @@ function doRandom() {
 function doMirror() {
   turnOffFill(); turnOffAdjustLedges();
   pushHistory(); S.p2=[...S.p1]; refreshPoles();
-  if (S.selPole==='p2') updateRingInfo();
 }
 /* ── Reset Colors only: all rings → black, ledge positions kept ── */
 function doResetColors() {
