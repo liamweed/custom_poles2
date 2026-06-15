@@ -213,6 +213,13 @@ body {
 .flow-card-footer {
   padding: 6px 12px 12px; flex-shrink: 0;
 }
+/* Style-selection cards only: name centered under the pole preview */
+.flow-card-footer.style-name {
+  padding: 4px 8px 10px; text-align: center;
+}
+.flow-card-footer.style-name .flow-card-label {
+  font-size: clamp(0.78rem, 2.4vw, 1.05rem); letter-spacing: 0.08em;
+}
 .flow-card-label {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: clamp(0.9rem, 2.8vw, 1.2rem);
@@ -268,15 +275,17 @@ body {
   width: calc((100% - (var(--cols) - 1) * 6px) / var(--cols));
   height: auto; aspect-ratio: 1;
 }
-/* 4 col × 4 row — all-colors card (16 colors) */
+/* All-colors card — cols/rows + aspect ratio are set inline from COLORS.length
+   (see palSqHTMLAll), so any color count stays a balanced square-ish grid.
+   At 16 colors this resolves to the original 4×4. */
 .pal-sq-grid-all {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(4, 1fr);
+  grid-template-columns: repeat(var(--cols, 4), 1fr);
+  grid-template-rows: repeat(var(--rows, 4), 1fr);
   gap: 5px;
   padding: 14px;
   width: 100%; max-width: 200px;
-  aspect-ratio: 1/1;
+  aspect-ratio: var(--cols, 4) / var(--rows, 4);
 }
 .pal-sq {
   border-radius: 6px;
@@ -611,7 +620,9 @@ body {
   }
   .color-picker-scroll-wrap.all-colors .color-picker-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);   /* 16 colors = 4×4 */
+    /* Column count set inline from COLORS.length (see buildColorPicker); rows fill
+       automatically. 16 colors → 4 cols (4×4), unchanged. */
+    grid-template-columns: repeat(var(--allcols, 4), 1fr);
     grid-auto-rows: 1fr;
     align-content: space-evenly;
     justify-items: center;
@@ -1315,8 +1326,7 @@ body {
     <button class="btn sm ghost" onclick="goTo('land')">← Back</button>
   </nav>
   <div class="card-screen-body fade-in">
-    <div class="card-screen-hed">Pick a pattern</div>
-    <div class="card-screen-sub">Choose your ring layout</div>
+    <div class="card-screen-hed">Pick a style</div>
     <div class="card-grid-3" id="pat-grid"></div>
   </div>
 </div>
@@ -1587,21 +1597,30 @@ const COLORS = [
   {hex:'#DDCBA4', name:'Almond'}
 ];
 
+/* Look up colors by name — one source of truth for every hex value.
+   byName('Red','Sky') returns the matching COLORS objects; byHex(...) returns
+   just their hex strings. Reference colors by name everywhere below so
+   reordering or recoloring COLORS can never silently break a palette/style. */
+const COLOR  = Object.fromEntries(COLORS.map(c => [c.name, c]));
+const byName = (...names) => names.map(n => COLOR[n]);
+const byHex  = (...names) => names.map(n => COLOR[n].hex);
+
 /* ══════════════════════════════════════════════════
    ── EDIT PALETTES HERE ──
-   Palettes hold a variable number of colors (3–6),
-   referenced by index into COLORS. No names shown to users.
+   Palettes hold a variable number of colors (3–6), referenced by color name
+   (must match a name in COLORS). No names are shown to users. Add a palette by
+   adding a byName(...) row — the picker grids scale automatically.
    ══════════════════════════════════════════════════ */
-const PAL_IDX = [
-  [10, 12, 11, 9],   // Merlot, Raspberry, Pink, Purple
-  [10, 9, 3],        // Merlot, Purple, Pistachio
-  [14, 15, 8, 5]     // Black, Almond, Slate, Spruce
+const PALETTES = [
+  byName('Merlot', 'Raspberry', 'Pink',  'Purple'),
+  byName('Merlot', 'Purple',    'Pistachio'),
+  byName('Black',  'Almond',    'Slate', 'Spruce'),
 ];
-const PALETTES = PAL_IDX.map(arr => arr.map(i => COLORS[i]));
 
 /* ══════════════════════════════════════════════════
    ── EDIT PATTERNS HERE ──
    7 patterns. p1/p2 hold per-ring slot indices.
+   name: shown on the style-selection cards (only there). Edit freely.
    defaultPalette: which palette loads with "use default colors".
    Optional fields (used by the 4 multi-colour styles below):
      palette: array of literal hex colours the slot indices map into,
@@ -1613,48 +1632,55 @@ const PALETTES = PAL_IDX.map(arr => arr.map(i => COLORS[i]));
    ══════════════════════════════════════════════════ */
 const PATTERNS = [
   {
+    name: 'Mosaic',
     defaultPalette: 0,
     p1:[0,1,0,2,3,4,1,0,2,3, 0,1,0,2,3,1,0,2,3, 0,1,0,2,3,1,0,2,3, 0,1,0,2,3,1, 0,0,3,4, 1,0],
     p2:[0,3,2,0,1,4,3,2,0,1, 0,3,2,0,1,3,2,0,1, 0,3,2,0,1,3,2,0,1, 0,3,2,0,1,3, 0,1,2,4, 3,0]
   },
   {
+    name: 'Beacon',
     defaultPalette: 2,
     p1:[0,1,1,2,3,4,0,4,1,1, 1,1,1,2,4,0,4,1,1, 1,1,1,4,3,4,1,1,1, 1,1,1,4,1,1, 0,1,4,3, 1,0],
     p2:[0,1,1,2,4,3,0,3,1,1, 1,1,1,2,3,0,3,1,1, 1,1,1,3,4,3,1,1,1, 1,1,1,3,1,1, 0,1,3,4, 1,0]
   },
   {
+    name: 'Minimal',
     defaultPalette: 0,
     p1:[1,0,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0, 1,0,2,0, 0,1],
     p2:[2,0,0,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0,0, 2,0,0,0,0,0, 2,0,1,0, 0,2]
   },
   /* 4 — Rainbow: identical poles, 7-colour sequence repeating top→bottom */
   {
+    name: 'Rainbow',
     defaultPalette: 0,
-    palette: ['#DB281A','#FF8C10','#F7D458','#B7D2A9','#8CBDE8','#31577A','#641C4E'],
+    palette: byHex('Red','Tangerine','Yellow','Pistachio','Sky','Slate','Merlot'),
     ledges: [0,10,19,28,34,39],
     p1:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,4],
     p2:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,4]
   },
   /* 5 — Gradient: P1 warm→cool, P2 cool→warm (inverse) */
   {
+    name: 'Gradient',
     defaultPalette: 0,
-    palette: ['#DB281A','#FF8C10','#F7D458','#B7D2A9','#8CBDE8','#31577A','#641C4E'],
+    palette: byHex('Red','Tangerine','Yellow','Pistachio','Sky','Slate','Merlot'),
     ledges: [0,10,19,28,34,39],
     p1:[0,0,0,0,0,0,1,1,1,1, 1,2,2,2,2,3,3,3,3,3, 4,4,4,4,5,5,5,5,5,6, 6,6,6,6,6,6,6,6,6,6],
     p2:[6,6,6,6,6,6,5,5,5,5, 5,4,4,4,4,3,3,3,3,3, 2,2,2,2,1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0]
   },
   /* 6 — Almond Burst: almond base, colour burst rings 29-35, accent ring 3 */
   {
+    name: 'Almond Burst',
     defaultPalette: 0,
-    palette: ['#DDCBA4','#DB281A','#FF8C10','#F7D458','#B7D2A9','#8CBDE8','#31577A','#641C4E'],
+    palette: byHex('Almond','Red','Tangerine','Yellow','Pistachio','Sky','Slate','Merlot'),
     ledges: [0,10,19],
     p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0],
     p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0]
   },
   /* 7 — Blackout Burst: same as Almond Burst with a black base */
   {
+    name: 'Blackout Burst',
     defaultPalette: 0,
-    palette: ['#000000','#DB281A','#FF8C10','#F7D458','#B7D2A9','#8CBDE8','#31577A','#641C4E'],
+    palette: byHex('Black','Red','Tangerine','Yellow','Pistachio','Sky','Slate','Merlot'),
     ledges: [0,10,19],
     p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0],
     p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0]
@@ -1696,6 +1722,11 @@ const S = {
   activeSlot:  null,         // currently selected slot id (raw pattern slot index) or null
   slotP1:      null,         // per-ring slot index for pole 1 (set when a pattern loads)
   slotP2:      null,         // per-ring slot index for pole 2
+  // one-step-back revert: color each ring/slot held BEFORE its last paint. Re-applying
+  // the active color to a ring/slot that already has it reverts to this stored color.
+  prevP1:      {},           // { ringIndex: hexColor } — previous color per pole-1 ring
+  prevP2:      {},           // { ringIndex: hexColor } — previous color per pole-2 ring
+  prevSlotColors: {},        // { slotId: hexColor } — previous color per slot (slot mode)
 };
 
 /* drag state */
@@ -2050,8 +2081,12 @@ function palSqHTML(pal) {
 }
 
 function palSqHTMLAll() {
-  // All 16 colors in a 4-col × 4-row grid
-  return `<div class="pal-sq-grid-all">${COLORS.map(c=>`<div class="pal-sq" style="background:${c.hex};${c.hex==='#FFFFFF'?'border:1.5px solid rgba(0,0,0,0.13);':''}"></div>`).join('')}</div>`;
+  // Every color in a balanced, square-ish grid — cols from √count, rows to fit.
+  // 16 colors → 4×4 (unchanged); any other count adapts automatically.
+  const cols = Math.ceil(Math.sqrt(COLORS.length));
+  const rows = Math.ceil(COLORS.length / cols);
+  const sq = c => `<div class="pal-sq" style="background:${c.hex};${c.hex==='#FFFFFF'?'border:1.5px solid rgba(0,0,0,0.13);':''}"></div>`;
+  return `<div class="pal-sq-grid-all" style="--cols:${cols};--rows:${rows}">${COLORS.map(sq).join('')}</div>`;
 }
 
 function renderPalCycle(el, idx) {
@@ -2083,6 +2118,7 @@ function initPatPicker(gridId, handlerName) {
     const palIdx = previewPalIdx !== null ? previewPalIdx : pat.defaultPalette;
     return `<div class="flow-card" onclick="${handlerName}(${i})">
       <div class="flow-card-visual" data-pat="${i}" data-pal="${palIdx}"></div>
+      <div class="flow-card-footer style-name"><div class="flow-card-label">${pat.name}</div></div>
     </div>`;
   }).join('');
   // Render poles after layout settles. Double rAF so the fixed card/visual height
@@ -2176,6 +2212,9 @@ function resetState() {
   S.activeSlot = null;
   S.slotP1 = null;
   S.slotP2 = null;
+  S.prevP1 = {};
+  S.prevP2 = {};
+  S.prevSlotColors = {};
 }
 
 /* ══════════════════════════════════════════════════
@@ -2348,6 +2387,9 @@ function buildColorPicker() {
     </div>`;
   };
   if (allColors) {
+    /* Desktop lays the full set out as a grid; derive its column count from √count
+       so any number of colors stays balanced (16 → 4 cols, unchanged). */
+    row.style.setProperty('--allcols', Math.ceil(Math.sqrt(colors.length)));
     row.innerHTML = colors.map(cpick).join('');
   } else {
     /* Palette: split across 3 rows, remainder added to the middle row, each row centered */
@@ -2473,9 +2515,26 @@ function slotHex(sid) {
   for (let i=0;i<N;i++) if (S.slotP2[i]===sid) return S.p2[i];
   return BLACK;
 }
-function paintSlot(sid, hex) {
+/* Set every ring in a slot to a color without recording a revert target. */
+function setSlotColor(sid, hex) {
   for (let i=0;i<N;i++) if (S.slotP1[i]===sid) S.p1[i]=hex;
   for (let i=0;i<N;i++) if (S.slotP2[i]===sid) S.p2[i]=hex;
+}
+/* True when every ring belonging to a slot already shows the given color. */
+function slotAllMatch(sid, hex) {
+  for (let i=0;i<N;i++) if (S.slotP1[i]===sid && S.p1[i]!==hex) return false;
+  for (let i=0;i<N;i++) if (S.slotP2[i]===sid && S.p2[i]!==hex) return false;
+  return true;
+}
+function paintSlot(sid, hex) {
+  // Re-applying the active color to a slot that already fully matches it reverts
+  // the whole slot to the color it held before — a one-step undo on the slot.
+  if (slotAllMatch(sid, hex)) {
+    if (sid in S.prevSlotColors) { setSlotColor(sid, S.prevSlotColors[sid]); delete S.prevSlotColors[sid]; }
+    return;
+  }
+  S.prevSlotColors[sid] = slotHex(sid);
+  setSlotColor(sid, hex);
 }
 function buildSlotRow() {
   const row = document.getElementById('slot-row');
@@ -2597,10 +2656,12 @@ function ringClick(poleKey, idx) {
 
   /* If a color is active, paint immediately */
   if (S.activeColor) {
+    const prev = poleKey==='p1' ? S.prevP1 : S.prevP2;
     const cur = (poleKey==='p1'?S.p1:S.p2)[idx];
-    /* Change 3: tapping a ring that already has the active color selects it instead of painting,
-       so the user can then use the ring/ledge toggle on it */
-    if (cur.toLowerCase()===S.activeColor.toLowerCase()) {
+    /* Tapping a ring that already has the active color: if it has a stored
+       previous color, revert to it (paintRing handles the swap); otherwise just
+       select the ring so the ring/ledge toggle can act on it. */
+    if (cur.toLowerCase()===S.activeColor.toLowerCase() && !(idx in prev)) {
       S.selPole=poleKey; S.selIdx=idx;
       refreshPoles(); updateRingInfo();
       return;
@@ -2618,8 +2679,17 @@ function ringClick(poleKey, idx) {
 }
 
 function paintRing(poleKey, idx, hex) {
-  if (poleKey==='p1') S.p1[idx]=hex;
-  else                S.p2[idx]=hex;
+  const arr  = poleKey==='p1' ? S.p1 : S.p2;
+  const prev = poleKey==='p1' ? S.prevP1 : S.prevP2;
+  // Re-applying the active color to a ring that already has it reverts the ring to
+  // the color it held before — a one-step undo on that single ring.
+  if (arr[idx] === hex) {
+    if (idx in prev) { arr[idx] = prev[idx]; delete prev[idx]; }
+    return;
+  }
+  // Otherwise paint normally, remembering the color we're covering up.
+  prev[idx] = arr[idx];
+  arr[idx] = hex;
 }
 
 /* ── Drag to paint ── */
