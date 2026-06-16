@@ -16,7 +16,7 @@
 <meta name="twitter:image" content="https://raw.githubusercontent.com/liamweed/custom_poles2/main/preview.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 <script async type="text/javascript" src="https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=Yq7u24"></script>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 
 /* ══════════════════════════════════════════════
@@ -42,7 +42,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-tap-highlight-color: transparent; }
 body {
-  font-family: 'Barlow', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
   background: var(--bg);
   color: var(--ink);
   min-height: 100dvh;
@@ -64,6 +65,12 @@ body {
 #s-cust.active { height: 100dvh; overflow: hidden; }
 /* Landing: exactly 4 cards must always fit — fixed height, never scrolls */
 #s-land.active { height: 100dvh; overflow: hidden; }
+
+/* Landing only: all text 10% smaller than its shared default */
+#s-land .nav-label      { font-size: 0.558rem; }                       /* 0.62 × 0.9 */
+#s-land .btn.sm         { font-size: 0.684rem; }                       /* 0.76 × 0.9 */
+#s-land .flow-card-label { font-size: clamp(0.81rem, 2.52vw, 1.08rem); } /* ×0.9 */
+#s-land .screen-footer  { font-size: 0.54rem; }                        /* 0.6 × 0.9 */
 
 @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .fade-in { animation: fadeIn 0.2s ease both; }
@@ -90,17 +97,17 @@ body {
 }
 .nav-right { display: flex; align-items: center; gap: 8px; }
 .nav-label {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.62rem; font-weight: 600;
-  letter-spacing: 0.2em; text-transform: uppercase;
+  letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--lite);
 }
 
 /* ── Buttons ── */
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 0.88rem; letter-spacing: 0.12em;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600; font-size: 0.88rem; letter-spacing: 0.06em;
   text-transform: uppercase;
   min-height: 44px; padding: 0 18px;
   border-radius: 5px; border: 2px solid var(--ink);
@@ -131,15 +138,16 @@ body {
   overflow-y: auto;   /* >4 cards scroll rather than overflow off-screen */
 }
 .card-screen-hed {
-  font-family: 'Anton', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
   font-size: clamp(1rem,3vw,1.6rem);
-  letter-spacing: 0.04em; text-transform: uppercase;
+  letter-spacing: 0.02em; text-transform: uppercase;
   margin-bottom: 2px; flex-shrink: 0;
 }
 .card-screen-sub {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.66rem; font-weight: 600;
-  letter-spacing: 0.16em; text-transform: uppercase;
+  letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--lite); margin-bottom: 8px; flex-shrink: 0;
 }
 
@@ -221,9 +229,9 @@ body {
   font-size: clamp(0.78rem, 2.4vw, 1.05rem); letter-spacing: 0.08em;
 }
 .flow-card-label {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: clamp(0.9rem, 2.8vw, 1.2rem);
-  font-weight: 700; letter-spacing: 0.1em;
+  font-weight: 600; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--ink); line-height: 1.2;
 }
 
@@ -242,7 +250,8 @@ body {
 .flow-card-cta:active { transform: scale(0.98); }
 @media (hover:hover) { .flow-card-cta:hover { background: var(--accent); border-color: var(--accent); } }
 .flow-card-cta-label {
-  font-family: 'Anton', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
   font-size: clamp(0.9rem,2.5vw,1.2rem);
   letter-spacing: 0.06em; text-transform: uppercase;
 }
@@ -252,8 +261,9 @@ body {
 .screen-footer {
   text-align: center; padding: 10px;
   padding-bottom: calc(10px + var(--safe-b));
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.6rem; letter-spacing: 0.16em;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.6rem; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--lite);
 }
 
@@ -297,7 +307,8 @@ body {
 
 /* Mystery "?" */
 .mystery-q-big {
-  font-family: 'Anton', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
   font-size: clamp(4rem, 14vw, 9rem);
   color: rgba(0,0,0,0.12);
   line-height: 1;
@@ -314,9 +325,9 @@ body {
 }
 .pole-col   { display: flex; flex-direction: column; align-items: center; }
 .pole-lbl   {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.58rem; font-weight: 700;
-  letter-spacing: 0.2em; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.58rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--lite); margin-bottom: 4px;
 }
 .pole-body  { display: flex; flex-direction: column; align-items: center; }
@@ -379,8 +390,8 @@ body {
   display: none;
   position: absolute; top: 8px; right: 8px; z-index: 6;
   align-items: center; justify-content: center;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.62rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   background: var(--ink); color: #fff;
   border: none; border-radius: 5px;
   padding: 6px 10px; min-height: 30px; cursor: pointer;
@@ -455,12 +466,12 @@ body {
   transition: background 0.12s;
 }
 .active-color-label {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--mid); flex: 1;
 }
 .active-color-hint {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.62rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--lite);
 }
@@ -496,8 +507,8 @@ body {
 }
 .cpick.active .cpick-circle { border-color: var(--ink); transform: scale(1.12); }
 .cpick-name {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.52rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.52rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--lite); text-align: center; max-width: 40px; line-height: 1.1;
 }
 .cpick.active .cpick-name { color: var(--ink); }
@@ -510,8 +521,8 @@ body {
   flex-shrink: 0; flex-wrap: wrap;
 }
 .toggle-pill {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.62rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   background: none; border: 1.5px solid rgba(0,0,0,0.13); border-radius: 20px;
   padding: 3px 12px; cursor: pointer; color: var(--mid);
   transition: all var(--t); touch-action: manipulation; min-height: 28px;
@@ -529,8 +540,8 @@ body {
 }
 .ring-info-row.hidden { display: none; }
 .ring-info-lbl {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.64rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--mid);
 }
 .ring-info-lbl .at-max { color: var(--ink); font-weight: 800; }
@@ -582,8 +593,8 @@ body {
   border: 2px solid rgba(0,0,0,0.12);
 }
 .slot-chip-lbl {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.54rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.54rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--mid); text-align: center; line-height: 1.1; max-width: 64px;
 }
 .slot-chip.active .slot-chip-lbl { color: var(--ink); }
@@ -670,8 +681,8 @@ body {
 }
 @media (min-width:740px) { .ledge-brush-panel { flex: 1; min-height: 0; } }
 .ledge-brush-hint {
-  font-family: 'Barlow Condensed',sans-serif; font-size: 0.66rem; font-weight: 600;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--lite); text-align: center;
+  font-family: 'Plus Jakarta Sans',sans-serif; font-size: 0.66rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--lite); text-align: center;
 }
 .ledge-brush-opts { display: flex; gap: 22px; align-items: flex-end; justify-content: center; }
 .ledge-brush-opt {
@@ -685,19 +696,19 @@ body {
 .ledge-brush-opt.active { border-color: var(--ink); background: rgba(0,0,0,0.04); box-shadow: var(--sh); }
 .ledge-brush-shape { display: flex; align-items: center; justify-content: center; height: 34px; }
 .ledge-brush-lbl {
-  font-family: 'Barlow Condensed',sans-serif; font-size: 0.8rem; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid);
+  font-family: 'Plus Jakarta Sans',sans-serif; font-size: 0.8rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid);
 }
 .ledge-brush-opt.active .ledge-brush-lbl { color: var(--ink); }
 .ledge-brush-count {
-  font-family: 'Barlow Condensed',sans-serif; font-size: 0.72rem; font-weight: 700;
-  letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid);
+  font-family: 'Plus Jakarta Sans',sans-serif; font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid);
 }
 .ledge-brush-count .lc-num { color: var(--ink); }
 .ledge-spacing-learn {
   background: none; border: none; cursor: pointer; padding: 0;
-  font-family: 'Barlow Condensed',sans-serif; font-size: 0.72rem; font-weight: 600;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--lite);
+  font-family: 'Plus Jakarta Sans',sans-serif; font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--lite);
   text-decoration: underline; text-underline-offset: 2px;
 }
 .ledge-brush-count.flash { animation: ledgeLimitFlash 0.45s ease 0s 2; }
@@ -763,8 +774,8 @@ body {
 .cust-action-bar .btn.save  { flex: 1.5; }   /* medium, middle */
 .cust-action-bar .btn.order { flex: 3; font-size: 0.82rem; }  /* largest, right — most prominent */
 .share-confirm {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.65rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent);
   text-align: center; padding: 3px 0; flex-shrink: 0;
   max-height: 0; overflow: hidden; transition: max-height 0.2s ease, opacity 0.2s ease;
   opacity: 0;
@@ -781,20 +792,22 @@ body {
   text-align: center; padding: 24px 22px calc(36px + var(--safe-b));
 }
 .mystery-h1 {
-  font-family: 'Anton', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
   font-size: clamp(1.3rem,4vw,2.4rem);
-  letter-spacing: 0.04em; text-transform: uppercase;
+  letter-spacing: 0.02em; text-transform: uppercase;
   line-height: 1.05; margin-bottom: 36px;
 }
 .mystery-p {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.92rem; letter-spacing: 0.09em; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.92rem; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--mid); max-width: 320px; line-height: 1.55; margin-bottom: 28px;
 }
 .mystery-ctas { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .myst-skip {
   background: none; border: none; cursor: pointer;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.68rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--lite); padding: 10px; min-height: 44px; touch-action: manipulation;
 }
@@ -818,22 +831,22 @@ body {
 }
 @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .ov-handle { width: 36px; height: 4px; background: rgba(0,0,0,0.12); border-radius: 2px; margin: 0 auto 16px; }
-.ov-title  { font-family: 'Anton', sans-serif; font-size: 1.3rem; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 3px; }
-.ov-sub    { font-family: 'Barlow Condensed', sans-serif; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--lite); margin-bottom: 14px; }
+.ov-title  { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.3rem; letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 3px; }
+.ov-sub    { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--lite); margin-bottom: 14px; }
 .ov-poles  { display: flex; justify-content: center; margin-bottom: 16px; background: var(--card); border-radius: 10px; padding: 12px; }
-.ov-lbl    { font-family: 'Barlow Condensed', sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--lite); margin-bottom: 7px; }
+.ov-lbl    { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--lite); margin-bottom: 7px; }
 .ov-email-row { display: flex; gap: 7px; margin-bottom: 8px; }
 .ov-email-input {
   flex: 1; padding: 0 14px; height: 46px; border-radius: 6px;
   border: 2px solid rgba(0,0,0,0.12); background: var(--bg);
-  font-family: 'Barlow', sans-serif; color: var(--ink);
+  font-family: 'Plus Jakarta Sans', sans-serif; color: var(--ink);
   font-size: max(16px,1rem); transition: border-color var(--t); outline: none;
 }
 .ov-email-input:focus { border-color: var(--ink); }
 .ov-email-input::placeholder { color: var(--lite); }
-.ov-confirm { font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); opacity: 0; text-align: center; margin-top: 6px; transition: opacity var(--t); }
+.ov-confirm { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); opacity: 0; text-align: center; margin-top: 6px; transition: opacity var(--t); }
 .ov-confirm.show { opacity: 1; }
-.ov-spam { font-family: 'Barlow Condensed', sans-serif; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lite); opacity: 0; text-align: center; margin-top: 4px; transition: opacity var(--t); }
+.ov-spam { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--lite); opacity: 0; text-align: center; margin-top: 4px; transition: opacity var(--t); }
 .ov-confirm.show + .ov-spam { opacity: 1; }
 .save-popup {
   display: none; position: fixed; inset: 0; z-index: 10000;
@@ -852,18 +865,18 @@ body {
   font-size: 2.6rem; line-height: 1; color: var(--accent); margin-bottom: 12px;
 }
 .save-popup-title {
-  font-family: 'Anton', sans-serif; font-size: 1.4rem;
-  letter-spacing: 0.03em; text-transform: uppercase; color: var(--ink);
+  font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.4rem;
+  letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink);
   margin-bottom: 10px;
 }
 .save-popup-sub {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem;
   letter-spacing: 0.03em; color: var(--mid); line-height: 1.4;
 }
 .save-popup-x {
   position: absolute; top: 10px; right: 14px;
   background: none; border: none; cursor: pointer;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.4rem; line-height: 1; color: var(--lite);
 }
 @media (hover:hover) { .save-popup-x:hover { color: var(--ink); } }
@@ -880,7 +893,7 @@ body {
   box-shadow: var(--shl);
 }
 .spacing-popup-text {
-  font-family: 'Barlow', sans-serif; font-size: 0.88rem;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem;
   color: var(--ink); line-height: 1.65; margin: 0 0 12px;
 }
 .spacing-popup-text:last-child { margin-bottom: 0; }
@@ -914,14 +927,14 @@ body {
   color: #000; --logo-ii: #000;
 }
 .desktop-prompt-text {
-  font-family: 'Barlow', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.9rem; color: var(--mid); line-height: 1.6;
   margin-bottom: 24px;
 }
 .desktop-prompt-btn {
   width: 100%;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 0.9rem; letter-spacing: 0.12em; text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600; font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase;
   background: var(--accent); color: #fff;
   border: none; border-radius: 5px;
   padding: 14px 16px; min-height: 48px; cursor: pointer;
@@ -1146,9 +1159,10 @@ body {
   color: #fff;
   border-radius: 12px;
   padding: 22px 40px;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   font-size: 1.6rem;
   opacity: 0;
   pointer-events: none;
@@ -1267,7 +1281,6 @@ body {
   </nav>
   <div class="card-screen-body fade-in">
     <div class="card-screen-hed">Pick a palette</div>
-    <div class="card-screen-sub">Choose your color family</div>
     <div class="card-grid-3" id="pal-grid"></div>
   </div>
 </div>
@@ -1363,7 +1376,6 @@ body {
   </nav>
   <div class="card-screen-body fade-in">
     <div class="card-screen-hed">Pick a palette</div>
-    <div class="card-screen-sub">This will apply to your chosen pattern</div>
     <div class="card-grid-3" id="pat-pal-grid"></div>
   </div>
 </div>
@@ -1450,7 +1462,7 @@ body {
 
           <!-- Pattern swap panel -->
           <div id="pattern-swap-panel" style="display:none; padding:10px; border-top:1px solid rgba(0,0,0,0.07);">
-            <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.64rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--lite); margin-bottom:8px;">Change pattern — ring colors are kept</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:0.64rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--lite); margin-bottom:8px;">Change pattern — ring colors are kept</div>
             <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;" id="pattern-swap-grid"></div>
             <button class="btn sm ghost" style="margin-top:8px; width:100%;" onclick="closePatternSwap()">Cancel</button>
           </div>
@@ -1503,7 +1515,7 @@ body {
       <input type="checkbox" id="ov-design-link" checked disabled
         style="width:16px;height:16px;">
       <label for="ov-design-link"
-        style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;
+        style="font-family:'Plus Jakarta Sans',sans-serif;font-size:0.75rem;font-weight:600;
         letter-spacing:0.08em;text-transform:uppercase;color:var(--mid);">
         Email me my design link
       </label>
@@ -1512,7 +1524,7 @@ body {
       <input type="checkbox" id="ov-marketing-optin"
         style="width:16px;height:16px;">
       <label for="ov-marketing-optin"
-        style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;
+        style="font-family:'Plus Jakarta Sans',sans-serif;font-size:0.75rem;font-weight:600;
         letter-spacing:0.08em;text-transform:uppercase;color:var(--mid);">
         Sign me up for twIIgs updates and deals
       </label>
@@ -2720,7 +2732,7 @@ function openPatternSwap() {
   /* No Pattern option first */
   const noPatCard = `<div class="flow-card" style="min-width:80px;min-height:auto;flex-shrink:0;" onclick="swapPattern(null)">
     <div class="flow-card-visual" style="padding:10px 4px; min-height:60px; align-items:center; justify-content:center; display:flex;">
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--lite);">No Pattern</span>
+      <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--lite);">No Pattern</span>
     </div>
   </div>`;
   grid.innerHTML = noPatCard + PATTERNS.map((pat,i)=>`
