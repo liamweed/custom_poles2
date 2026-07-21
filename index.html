@@ -28,7 +28,7 @@
   --ink:     #1A1A1A;
   --mid:     #666;
   --lite:    #AAA;
-  --accent:  #008C95;   /* ← SWAP ACCENT COLOR HERE */
+  --accent:  #0080B9;   /* ← SWAP ACCENT COLOR HERE */
   --r:       10px;
   --sh:      0 2px 12px rgba(0,0,0,0.07);
   --shm:     0 6px 28px rgba(0,0,0,0.11);
@@ -1585,22 +1585,21 @@ function svgLedge(w, h, color, extraClass, attrs) {
    16 official twIIgs colors.
    ══════════════════════════════════════════════════ */
 const COLORS = [
-  {hex:'#DB281A', name:'Red'},
-  {hex:'#FF8C10', name:'Tangerine'},
-  {hex:'#F7D458', name:'Yellow'},
-  {hex:'#B7D2A9', name:'Pistachio'},
-  {hex:'#83BE00', name:'Lime'},
-  {hex:'#034639', name:'Spruce'},
-  {hex:'#008C95', name:'Teal'},
-  {hex:'#8CBDE8', name:'Sky'},
-  {hex:'#31577A', name:'Slate'},
-  {hex:'#6767AC', name:'Purple'},
-  {hex:'#641C4E', name:'Merlot'},
-  {hex:'#FF40B6', name:'Pink'},
-  {hex:'#D2386C', name:'Raspberry'},
-  {hex:'#FFFFFF', name:'White'},
-  {hex:'#000000', name:'Black'},
-  {hex:'#DDCBA4', name:'Almond'}
+  {hex:'#F0001F', name:'Red'},
+  {hex:'#C43201', name:'Clay'},
+  {hex:'#FF7D00', name:'Orange'},
+  {hex:'#FAE847', name:'Yellow'},
+  {hex:'#B3E14F', name:'Lime'},
+  {hex:'#A2D5A4', name:'Sage'},
+  {hex:'#0080B9', name:'Teal'},
+  {hex:'#8BD2FA', name:'Sky Blue'},
+  {hex:'#1D3055', name:'Navy'},
+  {hex:'#627AEF', name:'Violet'},
+  {hex:'#FF2F87', name:'Raspberry'},
+  {hex:'#8A002B', name:'Wine'},
+  {hex:'#55554D', name:'Olive'},
+  {hex:'#DDDBCD', name:'Ivory'},
+  {hex:'#000000', name:'Black'}
 ];
 
 /* Look up colors by name — one source of truth for every hex value.
@@ -1618,9 +1617,9 @@ const byHex  = (...names) => names.map(n => COLOR[n].hex);
    adding a byName(...) row — the picker grids scale automatically.
    ══════════════════════════════════════════════════ */
 const PALETTES = [
-  byName('Merlot', 'Raspberry', 'Pink',  'Purple'),
-  byName('Merlot', 'Purple',    'Pistachio'),
-  byName('Black',  'Almond',    'Slate', 'Spruce'),
+  byName('Wine',  'Raspberry', 'Violet', 'Navy'),
+  byName('Wine',  'Violet',    'Sage'),
+  byName('Black', 'Ivory',     'Olive',  'Navy'),
 ];
 
 /* ══════════════════════════════════════════════════
@@ -1659,7 +1658,7 @@ const PATTERNS = [
   {
     name: 'Rainbow',
     defaultPalette: 0,
-    palette: byHex('Red','Tangerine','Yellow','Pistachio','Sky','Slate','Merlot'),
+    palette: byHex('Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
     ledges: [0,10,19,28,34,39],
     p1:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,4],
     p2:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,4]
@@ -1668,7 +1667,7 @@ const PATTERNS = [
   {
     name: 'Gradient',
     defaultPalette: 0,
-    palette: byHex('Red','Tangerine','Yellow','Pistachio','Sky','Slate','Merlot'),
+    palette: byHex('Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
     ledges: [0,10,19,28,34,39],
     p1:[0,0,0,0,0,0,1,1,1,1, 1,2,2,2,2,3,3,3,3,3, 4,4,4,4,5,5,5,5,5,6, 6,6,6,6,6,6,6,6,6,6],
     p2:[6,6,6,6,6,6,5,5,5,5, 5,4,4,4,4,3,3,3,3,3, 2,2,2,2,1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0]
@@ -1677,7 +1676,7 @@ const PATTERNS = [
   {
     name: 'Almond Burst',
     defaultPalette: 0,
-    palette: byHex('Almond','Red','Tangerine','Yellow','Pistachio','Sky','Slate','Merlot'),
+    palette: byHex('Ivory','Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
     ledges: [0,10,19],
     p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0],
     p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0]
@@ -1686,7 +1685,7 @@ const PATTERNS = [
   {
     name: 'Blackout Burst',
     defaultPalette: 0,
-    palette: byHex('Black','Red','Tangerine','Yellow','Pistachio','Sky','Slate','Merlot'),
+    palette: byHex('Black','Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
     ledges: [0,10,19],
     p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0],
     p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0]
@@ -1700,7 +1699,7 @@ PATTERNS.forEach(p => { ['p1','p2'].forEach(k => { while(p[k].length<40)p[k].pus
 const N         = 40;
 const DEF_BIG   = new Set([0,10,19,28,34,39]);
 const MAX_LEDGE = 6;
-const BLACK     = '#19232F';
+const BLACK     = '#000000';
 const CAP_H_R   = 0.38;
 
 /* ══════════════════════════════════════════════════
