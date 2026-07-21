@@ -1035,10 +1035,17 @@ body {
     max-height: none; margin-bottom: 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  /* Item 3: overflow visible so the hint (top) and LEDGES x/6 counter + learn
-     link (bottom) aren't clipped; smaller hint text so it fits without wrapping. */
-  .ledge-brush-panel            { max-height: 120px; gap: 8px; padding: 10px 12px; overflow: visible; }
+  /* Item 3: panel expands to fit all content — no max-height cap, height auto, and
+     overflow visible so the hint (top) and LEDGES x/6 counter + learn link (bottom)
+     aren't clipped; smaller hint text so it fits without wrapping. */
+  .ledge-brush-panel {
+    height: auto; max-height: none;
+    gap: 8px; padding: 10px 12px;
+    padding-top: 10px; padding-bottom: 10px;
+    overflow: visible;
+  }
   .ledge-brush-hint             { font-size: 0.6rem; }
+  .ledge-spacing-learn          { margin-top: 6px; }
   /* Shorter shape-selector cards on mobile — smaller icons, RING/LEDGE labels kept
      below, cards still side by side, and the "LEDGES 0/6" counter stays visible. */
   .ledge-brush-opt              { max-height: 80px; padding: 8px 14px; gap: 4px; min-width: 0; }
@@ -1118,6 +1125,11 @@ body {
     letter-spacing: 0.03em;
     padding: 0 6px;
     overflow: hidden;
+  }
+  /* "Fewer tools ▴" is longer than "More tools ▾" — shrink only that label so it
+     doesn't clip (class toggled in toggleMoreTools). */
+  .scratch-tools.main-tools .btn.tool.more-tools-toggle.showing-fewer {
+    font-size: 0.48rem;
   }
 
   /* ── Item 4: exactly 2px uniform ring/ledge spacing everywhere on mobile.
@@ -2608,7 +2620,10 @@ function toggleMoreTools() {
   if (!bar) return;
   const open = bar.style.display==='none';
   bar.style.display = open ? '' : 'none';
-  if (btn) btn.textContent = open ? 'Fewer tools ▴' : 'More tools ▾';
+  if (btn) {
+    btn.textContent = open ? 'Fewer tools ▴' : 'More tools ▾';
+    btn.classList.toggle('showing-fewer', open);   // lets CSS shrink only the "Fewer tools" label on mobile
+  }
 }
 
 /* ══════════════════════════════════════════════════
