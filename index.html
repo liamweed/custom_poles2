@@ -1035,7 +1035,10 @@ body {
     max-height: none; margin-bottom: 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .ledge-brush-panel            { max-height: 120px; gap: 8px; padding: 10px 12px; overflow: hidden; }
+  /* Item 3: overflow visible so the hint (top) and LEDGES x/6 counter + learn
+     link (bottom) aren't clipped; smaller hint text so it fits without wrapping. */
+  .ledge-brush-panel            { max-height: 120px; gap: 8px; padding: 10px 12px; overflow: visible; }
+  .ledge-brush-hint             { font-size: 0.6rem; }
   /* Shorter shape-selector cards on mobile — smaller icons, RING/LEDGE labels kept
      below, cards still side by side, and the "LEDGES 0/6" counter stays visible. */
   .ledge-brush-opt              { max-height: 80px; padding: 8px 14px; gap: 4px; min-width: 0; }
@@ -1071,20 +1074,23 @@ body {
   /* Palette mode wraps colours in .cpick-row groups; flatten them so every colour
      is a single item in the one horizontal row. */
   .color-picker-scroll-wrap .cpick-row { display: contents; }
-  .color-picker-scroll-wrap .cpick { flex: 0 0 52px; width: 52px; }
+  .color-picker-scroll-wrap .cpick { flex: 0 0 56px; width: 56px; }
   .color-picker-scroll-wrap .cpick-circle,
   .color-picker-scroll-wrap.palette-rows .cpick-circle,
   .color-picker-scroll-wrap.all-colors .cpick-circle {
     width: 36px; height: 36px;
   }
+  /* Item 4: no ellipsis truncation — long names like "Raspberry" fit on one line
+     at 0.48rem within 56px, and wrap to two centered lines only if they still don't. */
   .color-picker-scroll-wrap .cpick-name,
   .color-picker-scroll-wrap.palette-rows .cpick-name,
   .color-picker-scroll-wrap.all-colors .cpick-name {
-    font-size: 0.5rem;
-    max-width: 52px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.48rem;
+    max-width: 56px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    text-align: center;
   }
 
   /* ── Item 7: slot mode — compact colour-only swatches (no labels) in a row
@@ -1106,8 +1112,10 @@ body {
   .more-tools-bar .scratch-tools .btn.tool {
     min-width: 0;
     min-height: 38px;
-    font-size: 0.62rem;
-    letter-spacing: 0.02em;
+    /* Item 1: smaller text + tighter tracking so no toolbar label clips or hugs the
+       button edge (Undo … Invert Colors). Height + padding unchanged. */
+    font-size: 0.55rem;
+    letter-spacing: 0.03em;
     padding: 0 6px;
     overflow: hidden;
   }
@@ -1585,21 +1593,21 @@ function svgLedge(w, h, color, extraClass, attrs) {
    16 official twIIgs colors.
    ══════════════════════════════════════════════════ */
 const COLORS = [
+  {hex:'#000000', name:'Black'},
+  {hex:'#fffae0', name:'Ivory'},
   {hex:'#f20927', name:'Red'},
   {hex:'#aa3e19', name:'Clay'},
-  {hex:'#ff7d00', name:'Orange'},
   {hex:'#fff382', name:'Yellow'},
-  {hex:'#b3e14f', name:'Lime'},
-  {hex:'#a2d5a4', name:'Sage'},
-  {hex:'#00798e', name:'Teal'},
-  {hex:'#b6e0f7', name:'Sky Blue'},
-  {hex:'#1d3055', name:'Navy'},
-  {hex:'#4f4192', name:'Violet'},
+  {hex:'#ff7d00', name:'Orange'},
   {hex:'#f13070', name:'Raspberry'},
   {hex:'#9b103b', name:'Wine'},
-  {hex:'#384939', name:'Olive'},
-  {hex:'#fffae0', name:'Ivory'},
-  {hex:'#000000', name:'Black'}
+  {hex:'#b6e0f7', name:'Sky Blue'},
+  {hex:'#00798e', name:'Teal'},
+  {hex:'#1d3055', name:'Navy'},
+  {hex:'#4f4192', name:'Violet'},
+  {hex:'#b3e14f', name:'Lime'},
+  {hex:'#a2d5a4', name:'Sage'},
+  {hex:'#384939', name:'Olive'}
 ];
 
 /* Look up colors by name — one source of truth for every hex value.
@@ -1620,6 +1628,7 @@ const PALETTES = [
   byName('Wine',  'Raspberry', 'Violet', 'Navy'),
   byName('Wine',  'Violet',    'Sage'),
   byName('Black', 'Ivory',     'Olive',  'Navy'),
+  byName('Black', 'Ivory',     'Red',    'Teal'),
 ];
 
 /* ══════════════════════════════════════════════════
@@ -2297,6 +2306,14 @@ function initCustomiser() {
       drag.active = true;
       drag.painted = new Set();
       if (!S.activeColor && !S.adjustLedgesMode) return;
+      // Fill toggle ON: a single tap floods every matching color across both poles
+      // (applyFlood snapshots history itself and keeps Fill on). Drag continues to
+      // flood any further rings the finger passes over — see the touchmove handler.
+      if (S.fillMode) {
+        const r = getTouchRing(e);
+        if (r) applyFlood(r.pole, r.idx);
+        return;
+      }
       pushHistory();
       const r = getTouchRing(e);
       if (r) {
@@ -2334,7 +2351,11 @@ function initCustomiser() {
         e.preventDefault();
         if (!drag.active) return;
         const r = getTouchRing(e);
-        if (r && S.activeColor && !S.adjustLedgesMode) {
+        if (!r) return;
+        // Fill toggle ON: flood each ring the finger drags over (applyFlood is a
+        // no-op once a ring already holds the active color, so it won't re-run).
+        if (S.fillMode) { applyFlood(r.pole, r.idx); return; }
+        if (S.activeColor && !S.adjustLedgesMode) {
           const key = r.pole + r.idx;
           if (!drag.painted.has(key)) {
             paintRing(r.pole, r.idx, S.activeColor);
