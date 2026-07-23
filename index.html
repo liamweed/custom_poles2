@@ -1476,7 +1476,6 @@ body {
               <button class="btn tool ghost" id="fill-btn" onclick="doFloodFill()">◼ Fill</button>
               <button class="btn tool ghost" onclick="doResetColors()">Reset Colors</button>
               <button class="btn tool ghost" onclick="doResetLedges()">Reset Ledges</button>
-              <button class="btn tool ghost" id="change-pattern-btn" onclick="openPatternSwap()" style="display:none">⟳ Change pattern</button>
             </div>
           </div>
 
@@ -2497,11 +2496,14 @@ function updateActiveColorBar() {
     sw.style.background  = S.activeColor;
     const c = COLORS.find(x=>x.hex.toLowerCase()===S.activeColor.toLowerCase());
     lbl.textContent = c ? c.name : 'Custom';
-    hint.textContent = 'tap or drag rings';
+    const hintText = window.innerWidth <= 739
+      ? 'tap to color'
+      : 'tap or drag to color';
+    hint.textContent = hintText;
   } else {
     sw.style.background  = 'transparent';
     lbl.textContent = 'Pick a color below';
-    hint.textContent = 'then tap or drag rings';
+    hint.textContent = 'then tap or drag to color';
   }
 }
 
