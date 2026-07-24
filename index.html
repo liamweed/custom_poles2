@@ -71,6 +71,8 @@ body {
 #s-land .btn.sm         { font-size: 0.684rem; }                       /* 0.76 × 0.9 */
 #s-land .flow-card-label { font-size: clamp(0.81rem, 2.52vw, 1.08rem); } /* ×0.9 */
 #s-land .screen-footer  { font-size: 0.54rem; }                        /* 0.6 × 0.9 */
+/* Landing cards: a little more breathing room above the top of the poles */
+#s-land .flow-card-visual { padding-top: 24px; }
 
 @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .fade-in { animation: fadeIn 0.2s ease both; }
@@ -267,7 +269,7 @@ body {
   text-transform: uppercase; color: var(--lite);
 }
 
-/* Variable palette cards (3–6 colors) — see palSqHTML().
+/* Variable palette cards (2–7 colors) — see palSqHTML().
    --cols (set inline) = max squares in any row; every square is 1/cols of the
    box width, so a row with fewer squares simply centers. */
 .pal-sq-stack {
@@ -1631,16 +1633,95 @@ const byHex  = (...names) => names.map(n => COLOR[n].hex);
 
 /* ══════════════════════════════════════════════════
    ── EDIT PALETTES HERE ──
-   Palettes hold a variable number of colors (3–6), referenced by color name
-   (must match a name in COLORS). No names are shown to users. Add a palette by
-   adding a byName(...) row — the picker grids scale automatically.
+   Palettes hold a variable number of colors (2–7), each referenced by literal
+   hex value (normally one of the COLORS hexes). No names are shown on the
+   palette picker cards. Add a palette by adding a hex-array row — the picker
+   grids and swatches scale automatically to any length.
    ══════════════════════════════════════════════════ */
 const PALETTES = [
-  byName('Wine',  'Raspberry', 'Violet', 'Navy'),
-  byName('Wine',  'Violet',    'Sage'),
-  byName('Black', 'Ivory',     'Olive',  'Navy'),
-  byName('Black', 'Ivory',     'Red',    'Teal'),
+  ['#f20927','#ff7d00','#fff382','#b3e14f','#b6e0f7','#9b103b','#4f4192'],
+  ['#00798e','#ff7d00','#aa3e19'],
+  ['#b6e0f7','#4f4192','#f20927','#fffae0'],
+  ['#fff382','#aa3e19','#00798e','#1d3055'],
+  ['#f20927','#1d3055','#fffae0'],
+  ['#a2d5a4','#b3e14f','#384939'],
+  ['#fffae0','#00798e','#f20927'],
+  ['#aa3e19','#b3e14f','#9b103b'],
+  ['#1d3055','#fff382','#fffae0'],
+  ['#384939','#fff382','#a2d5a4','#b3e14f'],
+  ['#9b103b','#f13070','#4f4192'],
+  ['#aa3e19','#9b103b','#fffae0','#fff382'],
+  ['#00798e','#4f4192','#b6e0f7'],
+  ['#fffae0','#384939','#ff7d00'],
+  ['#f20927','#fff382','#b3e14f'],
+  ['#9b103b','#1d3055','#b6e0f7'],
+  ['#a2d5a4','#384939','#f13070'],
+  ['#4f4192','#00798e','#b3e14f'],
+  ['#b6e0f7','#aa3e19','#a2d5a4'],
+  ['#9b103b','#fff382','#000000'],
+  ['#fffae0','#b3e14f','#9b103b'],
+  ['#00798e','#fff382','#4f4192','#aa3e19'],
+  ['#f20927','#000000','#fffae0'],
+  ['#384939','#9b103b','#aa3e19','#b6e0f7'],
+  ['#aa3e19','#fff382','#00798e'],
+  ['#4f4192','#f13070','#fffae0'],
+  ['#a2d5a4','#1d3055','#00798e','#9b103b'],
+  ['#b6e0f7','#a2d5a4','#9b103b'],
+  ['#9b103b','#f13070','#f20927','#ff7d00','#aa3e19'],
+  ['#fffae0','#000000','#1d3055','#384939'],
+  ['#b3e14f','#384939','#aa3e19','#00798e'],
+  ['#4f4192','#f20927','#fffae0'],
+  ['#9b103b','#00798e','#aa3e19'],
+  ['#ff7d00','#aa3e19','#384939'],
+  ['#b6e0f7','#4f4192','#b3e14f','#00798e'],
+  ['#aa3e19','#9b103b','#b3e14f'],
+  ['#fffae0','#384939','#b3e14f'],
+  ['#9b103b','#a2d5a4','#b6e0f7'],
+  ['#f20927','#fff382','#1d3055','#fffae0'],
+  ['#000000','#fffae0'],
+  ['#000000','#1d3055','#384939','#a2d5a4'],
+  ['#b3e14f','#fff382'],
+  ['#4f4192','#00798e','#a2d5a4'],
+  ['#aa3e19','#9b103b','#384939','#00798e'],
+  ['#384939','#9b103b'],
+  ['#a2d5a4','#384939','#aa3e19','#9b103b'],
+  ['#9b103b','#b3e14f'],
+  ['#f13070','#b3e14f','#9b103b','#000000'],
+  ['#b6e0f7','#00798e','#fff382'],
+  ['#b6e0f7','#fff382'],
+  ['#1d3055','#000000','#f20927'],
+  ['#aa3e19','#b3e14f'],
+  ['#aa3e19','#b3e14f','#00798e','#9b103b'],
+  ['#00798e','#4f4192','#9b103b'],
+  ['#384939','#fffae0'],
+  ['#9b103b','#b6e0f7','#f13070','#fff382']
 ];
+
+/* Palettes are literal hex arrays. Everything else in the app that consumes a
+   palette entry expects a {hex, name} color object (swatches use hex; the
+   color picker also shows a name). paletteColors() resolves a palette's hexes
+   to those objects, matching each hex to its COLORS entry (falling back to the
+   nearest COLORS color for hexes not present verbatim, so a name is always
+   available). */
+const _hexToRGB = h => {
+  const s = h.replace('#','');
+  return [parseInt(s.slice(0,2),16), parseInt(s.slice(2,4),16), parseInt(s.slice(4,6),16)];
+};
+function colorForHex(hex) {
+  const lc = hex.toLowerCase();
+  const exact = COLORS.find(c => c.hex.toLowerCase() === lc);
+  if (exact) return {hex, name: exact.name};
+  // No verbatim match: label it with the nearest COLORS color by RGB distance.
+  const [r,g,b] = _hexToRGB(hex);
+  let best = COLORS[0], bestD = Infinity;
+  COLORS.forEach(c => {
+    const [cr,cg,cb] = _hexToRGB(c.hex);
+    const d = (r-cr)**2 + (g-cg)**2 + (b-cb)**2;
+    if (d < bestD) { bestD = d; best = c; }
+  });
+  return {hex, name: best.name};
+}
+const paletteColors = idx => PALETTES[idx].map(colorForHex);
 
 /* ══════════════════════════════════════════════════
    ── EDIT PATTERNS HERE ──
@@ -1652,45 +1733,45 @@ const PALETTES = [
               independent of PALETTES (so a style can use the full
               colour range, not just a 3–6 colour palette).
      ledges:  array of ring positions that render as ledges, overriding
-              the default [0,10,19,28,34,39].
+              the default [0,10,19,28,34,40].
    Patterns without these fields behave exactly as before.
    ══════════════════════════════════════════════════ */
 const PATTERNS = [
   {
     name: 'Mosaic',
     defaultPalette: 0,
-    p1:[0,1,0,2,3,4,1,0,2,3, 0,1,0,2,3,1,0,2,3, 0,1,0,2,3,1,0,2,3, 0,1,0,2,3,1, 0,0,3,4, 1,0],
-    p2:[0,3,2,0,1,4,3,2,0,1, 0,3,2,0,1,3,2,0,1, 0,3,2,0,1,3,2,0,1, 0,3,2,0,1,3, 0,1,2,4, 3,0]
+    p1:[0,1,0,2,3,4,1,0,2,3, 0,1,0,2,3,1,0,2,3, 0,1,0,2,3,1,0,2,3, 0,1,0,2,3,1, 0,0,3,4, 1,0,0],
+    p2:[0,3,2,0,1,4,3,2,0,1, 0,3,2,0,1,3,2,0,1, 0,3,2,0,1,3,2,0,1, 0,3,2,0,1,3, 0,1,2,4, 3,0,0]
   },
   {
     name: 'Beacon',
     defaultPalette: 2,
-    p1:[0,1,1,2,3,4,0,4,1,1, 1,1,1,2,4,0,4,1,1, 1,1,1,4,3,4,1,1,1, 1,1,1,4,1,1, 0,1,4,3, 1,0],
-    p2:[0,1,1,2,4,3,0,3,1,1, 1,1,1,2,3,0,3,1,1, 1,1,1,3,4,3,1,1,1, 1,1,1,3,1,1, 0,1,3,4, 1,0]
+    p1:[0,1,1,2,3,4,0,4,1,1, 1,1,1,2,4,0,4,1,1, 1,1,1,4,3,4,1,1,1, 1,1,1,4,1,1, 0,1,4,3, 1,0,0],
+    p2:[0,1,1,2,4,3,0,3,1,1, 1,1,1,2,3,0,3,1,1, 1,1,1,3,4,3,1,1,1, 1,1,1,3,1,1, 0,1,3,4, 1,0,0]
   },
   {
     name: 'Minimal',
     defaultPalette: 0,
-    p1:[1,0,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0, 1,0,2,0, 0,1],
-    p2:[2,0,0,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0,0, 2,0,0,0,0,0, 2,0,1,0, 0,2]
+    p1:[1,0,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0, 1,0,2,0, 0,0,1],
+    p2:[2,0,0,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0,0, 2,0,0,0,0,0, 2,0,1,0, 0,0,2]
   },
   /* 4 — Rainbow: identical poles, 7-colour sequence repeating top→bottom */
   {
     name: 'Rainbow',
     defaultPalette: 0,
     palette: byHex('Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
-    ledges: [0,10,19,28,34,39],
-    p1:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,4],
-    p2:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,4]
+    ledges: [0,10,19,28,34,40],
+    p1:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,0,4],
+    p2:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,0,4]
   },
   /* 5 — Gradient: P1 warm→cool, P2 cool→warm (inverse) */
   {
     name: 'Gradient',
     defaultPalette: 0,
     palette: byHex('Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
-    ledges: [0,10,19,28,34,39],
-    p1:[0,0,0,0,0,0,1,1,1,1, 1,2,2,2,2,3,3,3,3,3, 4,4,4,4,5,5,5,5,5,6, 6,6,6,6,6,6,6,6,6,6],
-    p2:[6,6,6,6,6,6,5,5,5,5, 5,4,4,4,4,3,3,3,3,3, 2,2,2,2,1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0]
+    ledges: [0,10,19,28,34,40],
+    p1:[0,0,0,0,0,0,1,1,1,1, 1,2,2,2,2,3,3,3,3,3, 4,4,4,4,5,5,5,5,5,6, 6,6,6,6,6,6,6,6,6,0,6],
+    p2:[6,6,6,6,6,6,5,5,5,5, 5,4,4,4,4,3,3,3,3,3, 2,2,2,2,1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0,0]
   },
   /* 6 — Almond Burst: almond base, colour burst rings 29-35, accent ring 3 */
   {
@@ -1698,8 +1779,8 @@ const PATTERNS = [
     defaultPalette: 0,
     palette: byHex('Ivory','Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
     ledges: [0,10,19],
-    p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0],
-    p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0]
+    p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0,0],
+    p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0,0]
   },
   /* 7 — Blackout Burst: same as Almond Burst with a black base */
   {
@@ -1707,17 +1788,17 @@ const PATTERNS = [
     defaultPalette: 0,
     palette: byHex('Black','Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
     ledges: [0,10,19],
-    p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0],
-    p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0]
+    p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0,0],
+    p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0,0]
   }
 ];
-PATTERNS.forEach(p => { ['p1','p2'].forEach(k => { while(p[k].length<40)p[k].push(0); p[k]=p[k].slice(0,40); }); });
+PATTERNS.forEach(p => { ['p1','p2'].forEach(k => { while(p[k].length<41)p[k].push(0); p[k]=p[k].slice(0,41); }); });
 
 /* ══════════════════════════════════════════════════
    CONSTANTS
    ══════════════════════════════════════════════════ */
-const N         = 40;
-const DEF_BIG   = new Set([0,10,19,28,34,39]);
+const N         = 41;
+const DEF_BIG   = new Set([0,10,19,28,34,40]);
 const MAX_LEDGE = 6;
 const BLACK     = '#000000';
 const CAP_H_R   = 0.38;
@@ -1773,15 +1854,15 @@ const SZ = {
 /* Calculate pole size to fit inside a given pixel height.
    The gap between rings scales with ring height (~0.3·h) instead of a fixed 2px, so
    previews keep the editor's tight proportions even when small.
-   Stacked height ≈ 40·h + 39·(0.3·h) + 4.5·h (shaft) ≈ 56.2·h. */
+   Stacked height ≈ 41·h + 40·(0.3·h) + 4.5·h (shaft) ≈ 57.5·h. */
 function szForHeight(availH) {
   /* Mobile forces an exact 1px gap between rings (see the .pole-rings !important
-     rule), so the pole must be sized for that gap or the 40-ring stack renders
-     taller than measured and gets clipped. Stack = 40·h + 39·1 + 4.5·h(shaft).
+     rule), so the pole must be sized for that gap or the 41-ring stack renders
+     taller than measured and gets clipped. Stack = 41·h + 40·1 + 4.5·h(shaft).
      Desktop keeps its original ~0.3·h gap maths so it is unchanged. */
   if (isMobile()) {
     const g = 1;
-    let h = (availH - 39 * g) / 44.5;
+    let h = (availH - 40 * g) / 45.5;
     h = Math.max(2.5, Math.min(12, h));
     const sw  = Math.round(h * 1.9);
     const bw  = Math.round(sw * 1.55);
@@ -1806,21 +1887,21 @@ function getDynSz() {
   if (window.innerWidth <= 739) {
     /* Size rings so the FULL stack fits with no vertical clipping, accounting for
        every vertical consumer: the shaft below the rings (D.shh ≈ 4.5·h), the
-       POLE 1 / POLE 2 label above them (~20px), and the 39 gaps between 40 rings
+       POLE 1 / POLE 2 label above them (~20px), and the 40 gaps between 41 rings
        (1px each on mobile). */
     const gapSize  = 1;                      // mobile gap: 1px (was 2px) — more ring height
     const labelHeight = 20;                  // POLE 1 / POLE 2 label
-    const gapsHeight  = 39 * gapSize;        // 39 gaps between 40 rings (not 40)
+    const gapsHeight  = 40 * gapSize;        // 40 gaps between 41 rings
     // provisional h to derive the shaft height (shaftHeight = D.shh = 4.5·h)
-    const h0 = Math.max(3, Math.min(14, (H - gapsHeight - labelHeight - 40) / 40));
+    const h0 = Math.max(3, Math.min(14, (H - gapsHeight - labelHeight - 40) / 41));
     const shaftHeight = Math.round(h0 * 4.5);
     const availableH = H - shaftHeight - labelHeight - gapsHeight;
-    h = availableH / 40;
+    h = availableH / 41;
     h = Math.max(3, Math.min(14, h));        // clamp 3–14px on mobile (lets poles grow to fill)
   } else {
     /* Desktop sizing unchanged. */
     const targetH = H * 0.88;
-    h = (targetH - 40*0.9) / 44.6;
+    h = (targetH - 41*0.9) / 45.6;
     h = Math.max(3, Math.min(13, h));
   }
   let sw = Math.round(h*1.9), bw = Math.round(sw*1.55);
@@ -1866,7 +1947,7 @@ function buildPoleHTML(hexArr, D, poleKey, interactive) {
 
 function buildPolesFromPattern(palIdx, patIdx, sc, D) {
   const pat = PATTERNS[patIdx];
-  const palHex = pat.palette ? pat.palette : PALETTES[palIdx].map(c => c.hex);
+  const palHex = pat.palette ? pat.palette : PALETTES[palIdx];
   const bigSet = pat.ledges ? new Set(pat.ledges) : DEF_BIG;
   const hex = (arr, i) => palHex[arr[i] % palHex.length];
   const buildStatic = arr => {
@@ -2097,7 +2178,7 @@ function palSqHTML(pal) {
   /* Size squares off a shared baseline of 3 cols so every palette (3,4,5,6…)
      renders identically-sized squares; smaller rows just center. */
   const cols = Math.max(3, ...rows.map(r => r.length));
-  const sq = c => `<div class="pal-sq" style="background:${c.hex};${c.hex==='#FFFFFF'?'border:1.5px solid rgba(0,0,0,0.13);':''}"></div>`;
+  const sq = h => `<div class="pal-sq" style="background:${h};${h.toLowerCase()==='#ffffff'?'border:1.5px solid rgba(0,0,0,0.13);':''}"></div>`;
   const html = rows.map(r => `<div class="pal-sq-row">${r.map(sq).join('')}</div>`).join('');
   return `<div class="pal-sq-stack" style="--cols:${cols}">${html}</div>`;
 }
@@ -2206,7 +2287,7 @@ function startScratch() {
 
 function applyPattern(patIdx, palIdx) {
   const pat = PATTERNS[patIdx];
-  const palHex = pat.palette ? pat.palette : PALETTES[palIdx].map(c => c.hex);
+  const palHex = pat.palette ? pat.palette : PALETTES[palIdx];
   S.p1 = pat.p1.map(si => palHex[si % palHex.length]);
   S.p2 = pat.p2.map(si => palHex[si % palHex.length]);
   /* record each ring's raw pattern slot index so slot mode can group rings */
@@ -2444,7 +2525,7 @@ function splitThreeRows(arr) {
 
 function availColors() {
   if (S.unlocked || S.constrainedPalette===null) return COLORS;
-  return PALETTES[S.constrainedPalette];
+  return paletteColors(S.constrainedPalette);
 }
 
 function updateActiveColorBar() {
