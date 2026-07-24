@@ -2137,7 +2137,7 @@ function initLanding() {
     /* Double rAF so the card is fully painted and at its final height before we
        measure once; the stored D is then reused for every cycle (no re-measure). */
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      const D = scaleD(szForEl(patVis), isMobile() ? 1.0 : 1.15);   // landing card: 15% larger on desktop, smaller on mobile
+      const D = scaleD(szForEl(patVis), isMobile() ? 1.1 : 1.15);   // landing card: 15% larger on desktop, smaller on mobile
       const draw = idx => `<div class="poles-wrap">${buildPolesFromPattern(PATTERNS[idx].defaultPalette, idx, [], D)}</div>`;
       patVis.innerHTML = draw(0);
       const render = () => {
@@ -2153,7 +2153,7 @@ function initLanding() {
     scrVis._built = true;
     /* Double rAF so the container has its final dimensions before measuring once */
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      const D = scaleD(szForEl(scrVis), isMobile() ? 1.0 : 1.15);   // landing card: 15% larger on desktop, smaller on mobile
+      const D = scaleD(szForEl(scrVis), isMobile() ? 1.1 : 1.15);   // landing card: 15% larger on desktop, smaller on mobile
       scrVis.innerHTML = blackPolesHTML(D);
     }));
   }
