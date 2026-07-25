@@ -55,12 +55,8 @@ body {
 .screen { display: none; }
 .screen.active { display: flex; flex-direction: column; }
 #s-land.active,
-#s-e-pal.active,
-#s-e-pal-choice.active,
-#s-e-pal-patterns.active,
-#s-e-pat.active,
-#s-e-pat-choice.active,
-#s-e-pat-palettes.active,
+#s-e-palette.active,
+#s-e-style.active,
 #s-mystery.active { min-height: 100dvh; }
 #s-cust.active { height: 100dvh; overflow: hidden; }
 /* Landing: exactly 4 cards must always fit — fixed height, never scrolls */
@@ -73,6 +69,41 @@ body {
 #s-land .screen-footer  { font-size: 0.54rem; }                        /* 0.6 × 0.9 */
 /* Landing cards: a little more breathing room above the top of the poles */
 #s-land .flow-card-visual { padding-top: 24px; }
+
+/* ── Landing grid layout ──
+   Cards fill the available screen height. card-grid-3 is content-height by
+   default; on the landing we stretch the grid + cards to fill the viewport so
+   the poles run the full vertical length of each card.
+   Desktop (≥740px): 3 equal cards in one horizontal row.
+   Mobile (≤739px): 2 tall cards on top ("Choose a style" / "Build from
+   scratch") + a full-width, shorter secondary "Surprise me" button below. ── */
+#s-land #land-grid {
+  flex: 1; min-height: 0;
+  align-content: stretch;
+  grid-auto-rows: minmax(0, 1fr);
+}
+#s-land #land-grid .flow-card {
+  height: auto;
+  align-self: stretch;
+}
+@media (max-width: 739px) {
+  #s-land #land-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto;   /* top cards fill, surprise button stays short */
+  }
+  #s-land #land-surprise-card {
+    grid-column: 1 / -1;
+    height: auto; min-height: 44px;
+    flex-direction: row; align-items: center; justify-content: center;
+    text-align: center;
+    background: transparent;
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+  }
+  #s-land #land-surprise-card .flow-card-visual { display: none; }
+  #s-land #land-surprise-card .flow-card-footer { padding: 10px 12px; }
+  #s-land #land-surprise-card .flow-card-label { color: var(--ink); }
+}
 
 @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .fade-in { animation: fadeIn 0.2s ease both; }
@@ -186,8 +217,7 @@ body {
   min-height: 0;
 }
 /* Style (pattern) picker cards are 50% taller than palette cards */
-#s-e-pat .card-grid-3 .flow-card,
-#s-e-pal-patterns .card-grid-3 .flow-card {
+#s-e-style .card-grid-3 .flow-card {
   height: 420px;
 }
 
@@ -1142,27 +1172,20 @@ body {
   .pole-rings .ring-svg { margin: 0 !important; padding: 0 !important; }
 
   /* ── Palette picker swatches centered (kept) ── */
-  #s-e-pal .flow-card-visual,
-  #s-e-pat-palettes .flow-card-visual {
+  #s-e-palette .flow-card-visual {
     align-items: center; justify-content: center;
   }
 
-  /* ── Pattern (style) picker cards — 2 per row on mobile ── */
-  #s-e-pat .card-grid-3,
-  #s-e-pal-patterns .card-grid-3 {
+  /* ── Style picker cards — 2 per row on mobile ── */
+  #s-e-style .card-grid-3 {
     grid-template-columns: 1fr 1fr;
   }
 
   /* ── Item 2 (mobile): one fixed card size for every 3-up grid card so style
-     pole previews and palette swatches stay identical; >3 cards scroll. This
-     also keeps s-e-pat-choice constant as its palette cycles 3↔4 colours. ── */
+     pole previews and palette swatches stay identical; >3 cards scroll. ── */
   .card-grid-3 .flow-card { height: 38vw; max-height: 220px; }
-  /* Style (pattern) picker cards are 50% taller than palette cards */
-  #s-e-pal-patterns .card-grid-3 .flow-card { height: 57vw; max-height: 330px; }
-  /* "Start with a style" picker: cards 50% taller again so the pole previews read
-     bigger (57vw × 1.5 ≈ 85.5vw, 330px × 1.5 = 495px). Mobile-only. */
-  #s-e-pat .card-grid-3 .flow-card { height: 85.5vw; max-height: 495px; }
-  #s-e-pat-choice .flow-card-visual { overflow: hidden; }
+  /* Style picker: cards taller so the pole previews read bigger. Mobile-only. */
+  #s-e-style .card-grid-3 .flow-card { height: 85.5vw; max-height: 495px; }
 
   /* ── Item 6: "Use all colours" 4×4 grid scaled down to fit inside its card ── */
   .pal-sq-grid-all { max-width: 160px; gap: 4px; padding: 10px; }
@@ -1269,24 +1292,20 @@ body {
     </div>
   </nav>
   <div class="card-screen-body fade-in">
-    <div class="card-grid" id="land-grid">
-      <div class="flow-card" onclick="goTo('e-pal')">
-        <div class="flow-card-visual" id="land-color-vis"></div>
-        <div class="flow-card-footer"><div class="flow-card-label">Start with a color palette</div></div>
-      </div>
-      <div class="flow-card" onclick="goTo('e-pat')">
-        <div class="flow-card-visual" id="land-pat-vis"></div>
-        <div class="flow-card-footer"><div class="flow-card-label">Start with a style</div></div>
+    <div class="card-grid-3" id="land-grid">
+      <div class="flow-card" onclick="startChooseStyle()">
+        <div class="flow-card-visual" id="land-style-vis"></div>
+        <div class="flow-card-footer"><div class="flow-card-label">Choose a style</div></div>
       </div>
       <div class="flow-card" onclick="startScratch()">
         <div class="flow-card-visual" id="land-scratch-vis"></div>
-        <div class="flow-card-footer"><div class="flow-card-label">Start from scratch</div></div>
+        <div class="flow-card-footer"><div class="flow-card-label">Build from scratch</div></div>
       </div>
-      <div class="flow-card" onclick="goTo('mystery')">
+      <div class="flow-card" id="land-surprise-card" onclick="goTo('mystery')">
         <div class="flow-card-visual">
           <div class="mystery-q-big">?</div>
         </div>
-        <div class="flow-card-footer"><div class="flow-card-label">Mystery</div></div>
+        <div class="flow-card-footer"><div class="flow-card-label">Surprise me</div></div>
       </div>
     </div>
   </div>
@@ -1294,111 +1313,34 @@ body {
 </div>
 
 <!-- ═══════════════════════════
-     SCREEN 2A: PICK A PALETTE (color-first path)
+     "CHOOSE A STYLE" FLOW — STEP 1: PICK A PALETTE
+     Old entry screens replaced this flow. Retired IDs (kept here for reference):
+       s-e-pal, s-e-pal-choice, s-e-pal-patterns,
+       s-e-pat, s-e-pat-choice, s-e-pat-palettes
      ═══════════════════════════ -->
-<div id="s-e-pal" class="screen">
+<div id="s-e-palette" class="screen">
   <nav class="nav">
     <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
     <button class="btn sm ghost" onclick="goTo('land')">← Back</button>
   </nav>
   <div class="card-screen-body fade-in">
     <div class="card-screen-hed">Pick a palette</div>
-    <div class="card-grid-3" id="pal-grid"></div>
+    <div class="card-screen-sub">Or use all colors</div>
+    <div class="card-grid-3" id="cs-pal-grid"></div>
   </div>
 </div>
 
 <!-- ═══════════════════════════
-     SCREEN 3A: PATTERN OR JUMP IN (after palette chosen)
+     "CHOOSE A STYLE" FLOW — STEP 2: PICK A STYLE
      ═══════════════════════════ -->
-<div id="s-e-pal-choice" class="screen">
+<div id="s-e-style" class="screen">
   <nav class="nav">
     <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <button class="btn sm ghost" onclick="goTo('e-pal')">← Back</button>
-  </nav>
-  <div class="card-screen-body fade-in">
-    <div class="card-screen-hed">What's next?</div>
-    <div class="card-screen-sub">Add a pattern or start painting</div>
-    <div class="card-grid">
-      <div class="flow-card" onclick="goTo('e-pal-patterns')">
-        <div class="flow-card-visual" id="pal-choice-pat-vis"></div>
-        <div class="flow-card-footer"><div class="flow-card-label">Pick a pattern</div></div>
-      </div>
-      <div class="flow-card" onclick="launchFromPalette(null)">
-        <div class="flow-card-visual" id="pal-choice-scratch-vis"></div>
-        <div class="flow-card-footer"><div class="flow-card-label">Start coloring now</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════
-     SCREEN 4A: PICK A PATTERN (after palette + "pick pattern")
-     ═══════════════════════════ -->
-<div id="s-e-pal-patterns" class="screen">
-  <nav class="nav">
-    <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <button class="btn sm ghost" onclick="goTo('e-pal-choice')">← Back</button>
-  </nav>
-  <div class="card-screen-body fade-in">
-    <div class="card-screen-hed">Pick a pattern</div>
-    <div class="card-screen-sub">Choose your ring layout</div>
-    <div class="card-grid-3" id="pal-pat-grid"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════
-     SCREEN 2B: PICK A PATTERN (pattern-first path)
-     ═══════════════════════════ -->
-<div id="s-e-pat" class="screen">
-  <nav class="nav">
-    <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <button class="btn sm ghost" onclick="goTo('land')">← Back</button>
+    <button class="btn sm ghost" onclick="goTo('e-palette')">← Back</button>
   </nav>
   <div class="card-screen-body fade-in">
     <div class="card-screen-hed">Pick a style</div>
-    <div class="card-grid-3" id="pat-grid"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════
-     SCREEN 3B: COLOR CHOICE (after pattern chosen)
-     ═══════════════════════════ -->
-<div id="s-e-pat-choice" class="screen">
-  <nav class="nav">
-    <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <button class="btn sm ghost" onclick="goTo('e-pat')">← Back</button>
-  </nav>
-  <div class="card-screen-body fade-in">
-    <div class="card-screen-hed">Choose colors</div>
-    <div class="card-screen-sub">Pick a palette or start with defaults</div>
-    <div class="card-grid-3">
-      <div class="flow-card" onclick="launchFromPattern('default')">
-        <div class="flow-card-visual" id="pat-choice-default-vis"></div>
-        <div class="flow-card-footer"><div class="flow-card-label">Use pattern colors</div></div>
-      </div>
-      <div class="flow-card" onclick="goTo('e-pat-palettes')">
-        <div class="flow-card-visual" id="pat-choice-pal-vis" style="transition:opacity 0.2s;"></div>
-        <div class="flow-card-footer"><div class="flow-card-label">Choose a palette</div></div>
-      </div>
-      <div class="flow-card" onclick="launchFromPattern('all')">
-        <div class="flow-card-visual" id="pat-choice-all-vis"></div>
-        <div class="flow-card-footer"><div class="flow-card-label">Use all colors</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════
-     SCREEN 4B: PALETTE PICKER (pattern path → choose palette)
-     ═══════════════════════════ -->
-<div id="s-e-pat-palettes" class="screen">
-  <nav class="nav">
-    <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <button class="btn sm ghost" onclick="goTo('e-pat-choice')">← Back</button>
-  </nav>
-  <div class="card-screen-body fade-in">
-    <div class="card-screen-hed">Pick a palette</div>
-    <div class="card-grid-3" id="pat-pal-grid"></div>
+    <div class="card-grid-3" id="cs-style-grid"></div>
   </div>
 </div>
 
@@ -1580,22 +1522,25 @@ body {
 /* ══════════════════════════════════════════════════
    SVG RING BUILDERS
    ══════════════════════════════════════════════════ */
-function ringRect(w, h, color) {
-  const rx = Math.round(h * 0.35);
+function ringRect(w, h, color, rxMul) {
+  // Card previews pass an explicit rxMul: use the exact fractional radius (SVG
+  // allows decimals) so tiny rings round smoothly and consistently instead of
+  // quantizing to a blocky integer. Customiser passes none → original 0.35 round.
+  const rx = rxMul != null ? h * rxMul : Math.round(h * 0.35);
   return `<rect x="0" y="0" width="${w}" height="${h}" rx="${rx}" ry="${rx}" fill="${color}"/>`;
 }
-function svgRing(w, h, color, extraClass, attrs) {
+function svgRing(w, h, color, extraClass, attrs, rxMul) {
   return `<svg class="ring-svg${extraClass?' '+extraClass:''}" ${attrs||''}
     viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"
     xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;">
-    ${ringRect(w, h, color)}
+    ${ringRect(w, h, color, rxMul)}
   </svg>`;
 }
-function svgLedge(w, h, color, extraClass, attrs) {
+function svgLedge(w, h, color, extraClass, attrs, rxMul) {
   return `<svg class="ring-svg${extraClass?' '+extraClass:''}" ${attrs||''}
     viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"
     xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;">
-    ${ringRect(w, h, color)}
+    ${ringRect(w, h, color, rxMul)}
   </svg>`;
 }
 
@@ -1736,60 +1681,129 @@ const paletteColors = idx => PALETTES[idx].map(colorForHex);
               the default [0,10,19,28,34,40].
    Patterns without these fields behave exactly as before.
    ══════════════════════════════════════════════════ */
+// To reorder colors within a style, edit the colorOrder array. Each number is a
+// COLORS index. Example: [2,0,1] means slot 0 = Red, slot 1 = Black, slot 2 = Ivory
 const PATTERNS = [
   {
-    name: 'Mosaic',
+    name: 'No Ledges',
     defaultPalette: 0,
-    p1:[0,1,0,2,3,4,1,0,2,3, 0,1,0,2,3,1,0,2,3, 0,1,0,2,3,1,0,2,3, 0,1,0,2,3,1, 0,0,3,4, 1,0,0],
-    p2:[0,3,2,0,1,4,3,2,0,1, 0,3,2,0,1,3,2,0,1, 0,3,2,0,1,3,2,0,1, 0,3,2,0,1,3, 0,1,2,4, 3,0,0]
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    noLedges: true,
+    p1: Array(41).fill(0),
+    p2: Array(41).fill(0)
   },
-  {
-    name: 'Beacon',
-    defaultPalette: 2,
-    p1:[0,1,1,2,3,4,0,4,1,1, 1,1,1,2,4,0,4,1,1, 1,1,1,4,3,4,1,1,1, 1,1,1,4,1,1, 0,1,4,3, 1,0,0],
-    p2:[0,1,1,2,4,3,0,3,1,1, 1,1,1,2,3,0,3,1,1, 1,1,1,3,4,3,1,1,1, 1,1,1,3,1,1, 0,1,3,4, 1,0,0]
-  },
-  {
-    name: 'Minimal',
-    defaultPalette: 0,
-    p1:[1,0,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,0,0,0, 1,0,0,0,0,0, 1,0,2,0, 0,0,1],
-    p2:[2,0,0,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0,0, 2,0,0,0,0,0,0,0,0, 2,0,0,0,0,0, 2,0,1,0, 0,0,2]
-  },
-  /* 4 — Rainbow: identical poles, 7-colour sequence repeating top→bottom */
   {
     name: 'Rainbow',
     defaultPalette: 0,
-    palette: byHex('Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
-    ledges: [0,10,19,28,34,40],
-    p1:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,0,4],
-    p2:[0,1,2,3,4,5,6,0,1,2, 3,4,5,6,0,1,2,3,4,5, 6,0,1,2,3,4,5,6,0,1, 2,3,4,5,6,0,1,2,3,0,4]
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10],
+    p2: [2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10]
   },
-  /* 5 — Gradient: P1 warm→cool, P2 cool→warm (inverse) */
   {
-    name: 'Gradient',
+    name: 'Rainbow Blocks',
     defaultPalette: 0,
-    palette: byHex('Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
-    ledges: [0,10,19,28,34,40],
-    p1:[0,0,0,0,0,0,1,1,1,1, 1,2,2,2,2,3,3,3,3,3, 4,4,4,4,5,5,5,5,5,6, 6,6,6,6,6,6,6,6,6,0,6],
-    p2:[6,6,6,6,6,6,5,5,5,5, 5,4,4,4,4,3,3,3,3,3, 2,2,2,2,1,1,1,1,1,0, 0,0,0,0,0,0,0,0,0,0,0]
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [2,2,2,2,2,5,5,5,5,5,5,4,4,4,4,13,13,13,13,13,8,8,8,8,10,10,10,10,10,7,7,7,7,7,7,11,11,11,11,11,11],
+    p2: [2,2,2,2,2,5,5,5,5,5,5,4,4,4,4,13,13,13,13,13,8,8,8,8,10,10,10,10,10,7,7,7,7,7,7,11,11,11,11,11,11]
   },
-  /* 6 — Almond Burst: almond base, colour burst rings 29-35, accent ring 3 */
   {
-    name: 'Almond Burst',
+    name: 'Highline',
     defaultPalette: 0,
-    palette: byHex('Ivory','Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
-    ledges: [0,10,19],
-    p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0,0],
-    p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0,0]
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [3,9,14,9,14,9,14,9,14,9,3,9,14,9,14,9,14,9,14,3,9,14,9,14,9,14,9,14,3,9,14,9,14,9,3,9,14,9,14,9,3],
+    p2: [3,9,14,9,14,9,14,9,14,9,3,9,14,9,14,9,14,9,14,3,9,14,9,14,9,14,9,14,3,9,14,9,14,9,3,9,14,9,14,9,3]
   },
-  /* 7 — Blackout Burst: same as Almond Burst with a black base */
   {
-    name: 'Blackout Burst',
+    name: 'Meadow',
     defaultPalette: 0,
-    palette: byHex('Black','Red','Orange','Yellow','Sage','Sky Blue','Navy','Wine'),
-    ledges: [0,10,19],
-    p1:[0,0,0,7,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1, 2,3,4,5,6,7,0,0,0,0,0],
-    p2:[0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,7, 6,5,4,3,2,1,0,0,0,0,0]
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [12,13,13,13,4,4,4,13,13,13,12,13,13,4,4,4,4,13,13,12,13,13,13,4,4,13,13,13,12,13,13,4,13,13,12,13,13,4,13,13,12],
+    p2: [12,13,13,13,4,4,4,13,13,13,12,13,13,4,4,4,4,13,13,12,13,13,13,4,4,13,13,13,12,13,13,4,13,13,12,13,13,4,13,13,12]
+  },
+  {
+    name: 'Canopy',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [14,14,13,13,12,12,13,13,13,14,14,14,13,13,12,12,13,13,14,14,14,13,13,12,12,13,13,14,14,14,13,12,13,14,14,14,13,12,13,14,14],
+    p2: [14,14,13,13,12,12,13,13,13,14,14,14,13,13,12,12,13,13,14,14,14,13,13,12,12,13,13,14,14,14,13,12,13,14,14,14,13,12,13,14,14]
+  },
+  {
+    name: 'Splitrock',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [7,7,3,3,8,8,8,3,3,7,7,7,3,3,8,8,8,3,7,7,7,3,3,8,8,8,3,7,7,7,3,8,3,7,7,7,3,8,3,7,7],
+    p2: [7,7,3,3,8,8,8,3,3,7,7,7,3,3,8,8,8,3,7,7,7,3,3,8,8,8,3,7,7,7,3,8,3,7,7,7,3,8,3,7,7]
+  },
+  {
+    name: 'Ridgeline',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [0,0,0,14,10,10,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,0,0,0,0,0,0,0,0,0],
+    p2: [0,0,0,14,10,10,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,0,0,0,0,0,0,0,0,0]
+  },
+  {
+    name: 'Solstice',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [1,1,1,2,2,2,2,2,1,1,1,1,1,10,10,10,10,1,1,1,1,1,4,4,4,4,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    p2: [1,1,1,2,2,2,2,2,1,1,1,1,1,10,10,10,10,1,1,1,1,1,4,4,4,4,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+  },
+  {
+    name: 'Alpenglow',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [1,1,1,7,7,7,6,6,1,1,1,1,7,7,7,6,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,1,1,1,1,1,1,1,1,1],
+    p2: [1,1,1,7,7,7,6,6,1,1,1,1,7,7,7,6,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,1,1,1,1,1,1,1,1,1]
+  },
+  {
+    name: 'Splitpole',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: Array(41).fill(7),
+    p2: Array(41).fill(8)
+  },
+  {
+    name: 'Nightfall',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [0,0,1,11,11,11,1,0,0,0,0,0,1,11,11,1,0,0,0,0,0,1,11,11,1,0,0,0,0,0,1,11,1,0,0,0,1,11,1,0,0],
+    p2: [0,0,1,11,11,11,1,0,0,0,0,0,1,11,11,1,0,0,0,0,0,1,11,11,1,0,0,0,0,0,1,11,1,0,0,0,1,11,1,0,0]
+  },
+  {
+    name: 'Treeline',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [7,10,10,10,10,10,10,10,10,10,7,10,10,10,10,10,10,10,10,7,10,10,10,10,10,10,10,10,7,10,10,10,10,10,7,10,10,10,10,10,7],
+    p2: [12,10,10,10,10,10,10,10,10,10,12,10,10,10,10,10,10,10,10,12,10,10,10,10,10,10,10,10,12,10,10,10,10,10,12,10,10,10,10,10,12]
+  },
+  {
+    name: 'Snowpack',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [14,1,1,1,1,1,1,1,1,1,14,1,1,1,1,1,1,1,1,14,1,1,1,1,1,1,1,1,14,1,1,1,1,1,14,1,1,1,1,1,14],
+    p2: [14,1,1,1,1,1,1,1,1,1,14,1,1,1,1,1,1,1,1,14,1,1,1,1,1,1,1,1,14,1,1,1,1,1,14,1,1,1,1,1,14]
+  },
+  {
+    name: 'Sunrise',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: [0,0,0,7,6,5,4,8,0,0,0,0,0,0,8,8,8,8,0,0,0,0,8,8,0,0,0,0,0,0,8,0,0,0,0,0,0,8,0,0,0],
+    p2: [0,0,0,7,6,5,4,8,0,0,0,0,0,0,8,8,8,8,0,0,0,0,8,8,0,0,0,0,0,0,8,0,0,0,0,0,0,8,0,0,0]
   }
 ];
 PATTERNS.forEach(p => { ['p1','p2'].forEach(k => { while(p[k].length<41)p[k].push(0); p[k]=p[k].slice(0,41); }); });
@@ -1861,14 +1875,19 @@ function szForHeight(availH) {
      taller than measured and gets clipped. Stack = 41·h + 40·1 + 4.5·h(shaft).
      Desktop keeps its original ~0.3·h gap maths so it is unchanged. */
   if (isMobile()) {
-    const g = 1;
-    let h = (availH - 40 * g) / 45.5;
-    h = Math.max(2.5, Math.min(12, h));
+    const gapSize = 1;                       // mobile forces an exact 1px inter-ring gap
+    // 41 rings → 40 gaps. Provisional h derives the shaft height (shaftH = 4.5·h),
+    // then fit the 41 ring heights into what's left.
+    const h0     = Math.max(2.5, Math.min(12, (availH - 40 * gapSize) / 45.5));
+    const shaftH = Math.round(h0 * 4.5);
+    const availableH = availH - shaftH - (40 * gapSize);
+    let h = availableH / 41;
+    h = Math.max(2.5, Math.min(12, h));      // same clamp range as before
     const sw  = Math.round(h * 1.9);
     const bw  = Math.round(sw * 1.55);
     const shw = Math.max(3, Math.round(sw * 0.55));
     const shh = Math.round(h * 4.5);
-    return {sw, bw, h: Math.round(h*10)/10, gap:0, ringGap:g, shw, shh, capH:Math.round(bw*0.38)};
+    return {sw, bw, h: Math.round(h*10)/10, gap:0, ringGap:gapSize, shw, shh, capH:Math.round(bw*0.38)};
   }
   const h = Math.max(3, Math.min(7, availH / 55));
   const sw  = Math.round(h * 1.9);
@@ -1920,12 +1939,12 @@ function getDynSz() {
 /* ══════════════════════════════════════════════════
    RING HTML BUILDERS — SVG stamps
    ══════════════════════════════════════════════════ */
-function buildRingSVG(isBig, isCap, w, h, color, extraClass, attrs) {
+function buildRingSVG(isBig, isCap, w, h, color, extraClass, attrs, rxMul) {
   // All three types use ledge shape (as requested for now on cap too)
   if (isBig || isCap) {
-    return svgLedge(w, h, color, extraClass, attrs);
+    return svgLedge(w, h, color, extraClass, attrs, rxMul);
   }
-  return svgRing(w, h, color, extraClass, attrs);
+  return svgRing(w, h, color, extraClass, attrs, rxMul);
 }
 
 function buildPoleHTML(hexArr, D, poleKey, interactive) {
@@ -1945,19 +1964,39 @@ function buildPoleHTML(hexArr, D, poleKey, interactive) {
     <div class="pole-shaft" style="width:${D.shw}px;height:${D.shh}px;"></div></div>`;
 }
 
-function buildPolesFromPattern(palIdx, patIdx, sc, D) {
+/* Per-ring slot index → hex resolver for a pattern.
+   recolor=false: native look — useColors styles use the full COLORS list, others
+   use PALETTES[palIdx]. (Unchanged legacy behavior.)
+   recolor=true : recolor the style into PALETTES[palIdx], assigning palette
+   colors to the style's slots in pat.colorOrder priority. */
+function styleColorFor(pat, palIdx, recolor) {
+  if (!recolor) {
+    const base = pat.palette ? pat.palette
+      : pat.useColors ? COLORS.map(c => c.hex)
+      : PALETTES[palIdx];
+    return si => base[si % base.length];
+  }
+  const palHex = PALETTES[palIdx];
+  const order  = pat.colorOrder || COLORS.map((_, i) => i);
+  const used   = new Set([...pat.p1, ...pat.p2]);
+  const ranked = order.filter(si => used.has(si));
+  const map = {};
+  ranked.forEach((si, k) => { map[si] = palHex[k % palHex.length]; });
+  return si => (si in map) ? map[si] : palHex[0];
+}
+
+function buildPolesFromPattern(palIdx, patIdx, sc, D, recolor = false) {
   const pat = PATTERNS[patIdx];
-  const palHex = pat.palette ? pat.palette : PALETTES[palIdx];
-  const bigSet = pat.ledges ? new Set(pat.ledges) : DEF_BIG;
-  const hex = (arr, i) => palHex[arr[i] % palHex.length];
+  const resolve = styleColorFor(pat, palIdx, recolor);
+  const bigSet = pat.noLedges ? new Set([0]) : (pat.ledges ? new Set(pat.ledges) : DEF_BIG);
   const buildStatic = arr => {
     let r='';
     arr.forEach((si,i) => {
-      const bg    = hex(arr,i);
+      const bg    = resolve(si);
       const big   = bigSet.has(i);
       const isCap = i===0;
       const w     = (big||isCap) ? D.bw : D.sw;
-      r += buildRingSVG(big, isCap, w, D.h, bg, '', '');
+      r += buildRingSVG(big, isCap, w, D.h, bg, '', '', D.cornerRadiusMultiplier);
     });
     return `<div class="pole-body"><div class="pole-rings" style="gap:${D.ringGap??2}px;">${r}</div><div class="pole-shaft" style="width:${D.shw}px;height:${D.shh}px;"></div></div>`;
   };
@@ -1973,8 +2012,8 @@ function blackPolesHTML(D) {
     const big   = DEF_BIG.has(i);
     const isCap = i===0;
     const w     = (big||isCap) ? D.bw : D.sw;
-    p1 += buildRingSVG(big, isCap, w, D.h, hex, '', '');
-    p2 += buildRingSVG(big, isCap, w, D.h, hex, '', '');
+    p1 += buildRingSVG(big, isCap, w, D.h, hex, '', '', D.cornerRadiusMultiplier);
+    p2 += buildRingSVG(big, isCap, w, D.h, hex, '', '', D.cornerRadiusMultiplier);
   });
   const pole = rings => `<div class="pole-body"><div class="pole-rings" style="gap:${D.ringGap??2}px;">${rings}</div>
     <div class="pole-shaft" style="width:${D.shw}px;height:${D.shh}px;"></div></div>`;
@@ -2031,118 +2070,54 @@ function scaleD(D, k) {
 
 /* Build a poles-wrap HTML sized to fit a given element. `scale` nudges the poles
    larger/smaller on top of the fitted size (1 = exact fit). */
-function polesHTMLForCard(palIdx, patIdx, el, fill = 0.88, scale = 1) {
+function polesHTMLForCard(palIdx, patIdx, el, fill = 0.88, scale = 1, recolor = false) {
   let D = szForEl(el, fill);
   if (scale !== 1) D = scaleD(D, scale);
-  return `<div class="poles-wrap">${buildPolesFromPattern(palIdx, patIdx, [], D)}</div>`;
+  return `<div class="poles-wrap">${buildPolesFromPattern(palIdx, patIdx, [], D, recolor)}</div>`;
 }
-let _palAnim=null, _palAnimIdx=0;
 
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el = document.getElementById('s-'+id);
   if (el) el.classList.add('active');
   window.scrollTo(0,0);
-  if (id==='land')           initLanding();
-  if (id==='e-pal')          initPalPicker('pal-grid', 'pickPaletteColorPath');
-  if (id==='e-pal-choice')   initPalChoice();
-  if (id==='e-pal-patterns') initPatPicker('pal-pat-grid', 'pickPatternColorPath');
-  if (id==='e-pat')          initPatPicker('pat-grid', 'pickPatternPatPath');
-  if (id==='e-pat-choice')   initPatChoice();
-  if (id==='e-pat-palettes') initPalPicker('pat-pal-grid', 'pickPalettePatPath');
-  if (id==='cust')           initCustomiser();
+  if (id==='land')      initLanding();
+  if (id==='e-palette') initChoosePalette();
+  if (id==='e-style')   initChooseStyle();
+  if (id==='cust')      initCustomiser();
 }
 
 /* entry flow state */
 const E = { palette:null, pattern:null };
 
-/* Named pick handlers — called from card onclick */
-function pickPaletteColorPath(i) { E.palette=i; launchFromPalette(null); }
-function pickPatternColorPath(i)  { launchFromPalette(i); }
-function pickPatternPatPath(i)    { E.pattern=i; launchFromPattern('all'); }
-function pickPalettePatPath(i)    { E.palette=i; launchFromPattern('palette'); }
+/* Start the "Choose a style" flow: palette (step 1) → style (step 2) → editor. */
+function startChooseStyle() { E.palette = null; E.pattern = null; goTo('e-palette'); }
 
-/* ── Screen inits ── */
-
-function initPalChoice() {
-  const patVis = document.getElementById('pal-choice-pat-vis');
-  if (patVis) {
-    if (patVis._anim) { clearInterval(patVis._anim); patVis._anim = null; }
-    let pi = 0;
-    const palIdx = E.palette ?? 0;
-    patVis.style.transition='opacity 0.3s';
-    /* Measure once, reuse the sizing for every cycle */
-    requestAnimationFrame(()=>{
-      const D = szForEl(patVis);
-      const draw = idx => `<div class="poles-wrap">${buildPolesFromPattern(palIdx, idx, [], D)}</div>`;
-      patVis.innerHTML = draw(0);
-      const render = () => {
-        patVis.style.opacity='0';
-        setTimeout(()=>{ patVis.innerHTML = draw(pi); patVis.style.opacity='1'; },180);
-      };
-      patVis._anim = setInterval(()=>{ pi=(pi+1)%PATTERNS.length; render(); }, 1500);
-    });
-  }
-  const scrVis = document.getElementById('pal-choice-scratch-vis');
-  if (scrVis) {
-    requestAnimationFrame(()=>{
-      const D = szForEl(scrVis);
-      scrVis.innerHTML = blackPolesHTML(D);
-    });
-  }
-}
-
-function initPatChoice() {
-  /* Screen 3B: "Pattern colors" + "Choose a palette" + "All colors" */
-  const defVis = document.getElementById('pat-choice-default-vis');
-  if (defVis) {
-    const defPal = PATTERNS[E.pattern].defaultPalette;
-    defVis.innerHTML = palSqHTML(PALETTES[defPal]);
-  }
-  const allVis = document.getElementById('pat-choice-all-vis');
-  if (allVis) allVis.innerHTML = palSqHTMLAll();
-  const palVis = document.getElementById('pat-choice-pal-vis');
-  if (palVis && !palVis._anim) {
-    let ci=0;
-    palVis.innerHTML = palSqHTML(PALETTES[ci]);
-    palVis._anim = setInterval(()=>{
-      ci=(ci+1)%PALETTES.length;
-      palVis.style.opacity='0';
-      setTimeout(()=>{ palVis.innerHTML=palSqHTML(PALETTES[ci]); palVis.style.opacity='1'; },200);
-    },1600);
-  }
-}
+/* Step 1 pick: palette index, or null for "Use all colors". */
+function pickChoosePalette(i) { E.palette = i; goTo('e-style'); }
+/* Step 2 pick: pattern index, or null for "No style — go straight to editor". */
+function pickChooseStyle(i)   { E.pattern = i; launchChooseStyle(); }
 
 /* ══════════════════════════════════════════════════
    LANDING
    ══════════════════════════════════════════════════ */
 function initLanding() {
-  /* Color card — cycles through palettes */
-  const colVis = document.getElementById('land-color-vis');
-  if (colVis && !colVis._built) {
-    colVis._built = true;
-    renderPalCycle(colVis, 0);
-    if (_palAnim) clearInterval(_palAnim);
-    _palAnim = setInterval(() => {
-      _palAnimIdx = (_palAnimIdx+1) % PALETTES.length;
-      renderPalCycle(colVis, _palAnimIdx);
-    }, 1800);
-  }
-  /* Pattern card — cycles through patterns with dynamic sizing */
-  const patVis = document.getElementById('land-pat-vis');
-  if (patVis && !patVis._built) {
-    patVis._built = true;
-    patVis.style.transition='opacity 0.3s';
+  /* "Choose a style" card — cycles through style pole previews (native colors) */
+  const styleVis = document.getElementById('land-style-vis');
+  if (styleVis && !styleVis._built) {
+    styleVis._built = true;
+    styleVis.style.transition='opacity 0.3s';
     let pi = 0;
     /* Double rAF so the card is fully painted and at its final height before we
        measure once; the stored D is then reused for every cycle (no re-measure). */
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      const D = scaleD(szForEl(patVis), isMobile() ? 1.3 : 1.15);   // landing card: 15% larger on desktop, smaller on mobile
+      const D = scaleD(szForEl(styleVis), isMobile() ? 1.3 : 1.15);   // landing card: 15% larger on desktop, smaller on mobile
+      D.cornerRadiusMultiplier = 0.5;   // landing previews only: fully-rounded ends so tiny rings never look blocky
       const draw = idx => `<div class="poles-wrap">${buildPolesFromPattern(PATTERNS[idx].defaultPalette, idx, [], D)}</div>`;
-      patVis.innerHTML = draw(0);
+      styleVis.innerHTML = draw(0);
       const render = () => {
-        patVis.style.opacity='0';
-        setTimeout(()=>{ patVis.innerHTML = draw(pi); patVis.style.opacity='1'; },180);
+        styleVis.style.opacity='0';
+        setTimeout(()=>{ styleVis.innerHTML = draw(pi); styleVis.style.opacity='1'; },180);
       };
       setInterval(()=>{ pi=(pi+1)%PATTERNS.length; render(); }, 1500);
     }));
@@ -2154,6 +2129,7 @@ function initLanding() {
     /* Double rAF so the container has its final dimensions before measuring once */
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       const D = scaleD(szForEl(scrVis), isMobile() ? 1.3 : 1.15);   // landing card: 15% larger on desktop, smaller on mobile
+      D.cornerRadiusMultiplier = 0.5;   // landing previews only: fully-rounded ends so tiny rings never look blocky
       scrVis.innerHTML = blackPolesHTML(D);
     }));
   }
@@ -2192,88 +2168,75 @@ function palSqHTMLAll() {
   return `<div class="pal-sq-grid-all" style="--cols:${cols};--rows:${rows}">${COLORS.map(sq).join('')}</div>`;
 }
 
-function renderPalCycle(el, idx) {
-  el.style.opacity='0';
-  el.style.transition='opacity 0.3s';
-  setTimeout(()=>{
-    el.innerHTML = palSqHTML(PALETTES[idx]);
-    el.style.opacity='1';
-  },150);
-}
-
 /* ══════════════════════════════════════════════════
    ENTRY SCREENS
    ══════════════════════════════════════════════════ */
-function initPalPicker(gridId, handlerName) {
-  const grid = document.getElementById(gridId);
+/* STEP 1 — palette picker. "Use all colors" (E.palette=null) first, then all
+   58 palettes as scrollable cards in the existing palette-card style. */
+function initChoosePalette() {
+  const grid = document.getElementById('cs-pal-grid');
   if (!grid) return;
-  grid.innerHTML = PALETTES.map((pal,i) => `
-    <div class="flow-card" onclick="${handlerName}(${i})">
+  const allCard = `
+    <div class="flow-card" onclick="pickChoosePalette(null)">
+      <div class="flow-card-visual">${palSqHTMLAll()}</div>
+      <div class="flow-card-footer style-name"><div class="flow-card-label">Use all colors</div></div>
+    </div>`;
+  const palCards = PALETTES.map((pal,i) => `
+    <div class="flow-card" onclick="pickChoosePalette(${i})">
       <div class="flow-card-visual">${palSqHTML(pal)}</div>
     </div>`).join('');
+  grid.innerHTML = allCard + palCards;
 }
 
-function initPatPicker(gridId, handlerName) {
-  const grid = document.getElementById(gridId);
+/* STEP 2 — style picker. Every style rendered in the chosen palette colors
+   (E.palette) or default colors (all-colors path), plus a final "No style"
+   card (E.pattern=null) that goes straight to the editor. */
+function initChooseStyle() {
+  const grid = document.getElementById('cs-style-grid');
   if (!grid) return;
-  const previewPalIdx = (gridId === 'pal-pat-grid' && E.palette !== null) ? E.palette : null;
-  grid.innerHTML = PATTERNS.map((pat,i) => {
-    const palIdx = previewPalIdx !== null ? previewPalIdx : pat.defaultPalette;
-    return `<div class="flow-card" onclick="${handlerName}(${i})">
-      <div class="flow-card-visual" data-pat="${i}" data-pal="${palIdx}"></div>
+  const recolor = E.palette !== null;              // recolor previews into the palette
+  const palIdx  = E.palette;                        // null → native (all colors)
+  const styleCards = PATTERNS.map((pat,i) => `
+    <div class="flow-card" onclick="pickChooseStyle(${i})">
+      <div class="flow-card-visual" data-pat="${i}"></div>
       <div class="flow-card-footer style-name"><div class="flow-card-label">${pat.name}</div></div>
+    </div>`).join('');
+  const noStyleCard = `
+    <div class="flow-card" onclick="pickChooseStyle(null)">
+      <div class="flow-card-visual"><div class="mystery-q-big" style="font-size:clamp(3rem,10vw,6rem);">✎</div></div>
+      <div class="flow-card-footer style-name"><div class="flow-card-label">No style — go straight to editor</div></div>
     </div>`;
-  }).join('');
+  grid.innerHTML = styleCards + noStyleCard;
   // Render poles after layout settles. Double rAF so the fixed card/visual height
-  // is final before we measure each visual and size its poles to match.
-  // "Start with a style" path (pat-grid) on mobile: cards are 50% taller, so also
-  // enlarge the poles within them beyond the proportional growth.
-  const poleScale = (gridId === 'pat-grid' && isMobile()) ? 1.2 : 1;
+  // is final before we measure each visual and size its poles to match. Mobile
+  // style cards are taller, so enlarge the poles beyond the proportional growth.
+  const poleScale = isMobile() ? 1.2 : 1;
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     grid.querySelectorAll('.flow-card-visual[data-pat]').forEach(el => {
-      const pi  = +el.dataset.pat;
-      const pal = +el.dataset.pal;
+      const pi = +el.dataset.pat;
       // Tall style-picker cards: fill 0.78 of the visual so poles keep a clear
       // top/bottom margin and never look clipped against the card edges.
-      el.innerHTML = polesHTMLForCard(pal, pi, el, 0.78, poleScale);
+      el.innerHTML = polesHTMLForCard(palIdx, pi, el, 0.78, poleScale, recolor);
     });
   }));
 }
 
-/* ── Launch functions ── */
-function launchFromPalette(patternIdx) {
-  /* Path A: palette chosen (E.palette), optional pattern */
+/* ── Launch function ── */
+/* Launch the customiser from the "Choose a style" flow.
+   E.palette null → all colors; E.pattern null → no style.
+     palette + style → constrain to palette, load style (recolored), slot mode
+     palette + no style → constrain to palette, free mode, blank poles
+     all colors + style → no palette constraint, load style (native), slot mode
+     all colors + no style → no constraints, free mode (same as build from scratch) */
+function launchChooseStyle() {
   resetState();
-  S.constrainedPalette = E.palette;
-  S.unlocked = false;
-  if (patternIdx !== null) {
-    applyPattern(patternIdx, E.palette);
-    S.patternLoaded = patternIdx;
+  S.constrainedPalette = E.palette;               // null when all colors
+  S.patternLoaded      = E.pattern;               // null when no style
+  S.unlocked           = false;
+  if (E.pattern !== null) {
+    applyPattern(E.pattern, E.palette, E.palette !== null);
   }
-  S.slotMode = S.patternLoaded !== null;   // pattern present → start in slot mode
-  goTo('cust');
-}
-
-function launchFromPattern(colorMode) {
-  /* Path B: pattern chosen (E.pattern), colorMode = 'default'|'palette'|'all' */
-  resetState();
-  S.patternLoaded = E.pattern;
-  if (colorMode === 'default') {
-    const defPal = PATTERNS[E.pattern].defaultPalette;
-    applyPattern(E.pattern, defPal);
-    S.constrainedPalette = defPal;
-    S.unlocked = false;
-  } else if (colorMode === 'palette') {
-    applyPattern(E.pattern, E.palette);
-    S.constrainedPalette = E.palette;
-    S.unlocked = false;
-  } else {
-    /* all colors */
-    applyPattern(E.pattern, 0);
-    S.constrainedPalette = null;
-    S.unlocked = true;
-  }
-  S.slotMode = S.patternLoaded !== null;   // pattern always present here → slot mode
+  S.slotMode = E.pattern !== null;                // slot mode only when a style is chosen
   goTo('cust');
 }
 
@@ -2285,15 +2248,15 @@ function startScratch() {
   goTo('cust');
 }
 
-function applyPattern(patIdx, palIdx) {
+function applyPattern(patIdx, palIdx, recolor = false) {
   const pat = PATTERNS[patIdx];
-  const palHex = pat.palette ? pat.palette : PALETTES[palIdx];
-  S.p1 = pat.p1.map(si => palHex[si % palHex.length]);
-  S.p2 = pat.p2.map(si => palHex[si % palHex.length]);
+  const resolve = styleColorFor(pat, palIdx, recolor);
+  S.p1 = pat.p1.map(resolve);
+  S.p2 = pat.p2.map(resolve);
   /* record each ring's raw pattern slot index so slot mode can group rings */
   S.slotP1 = pat.p1.slice();
   S.slotP2 = pat.p2.slice();
-  S.big = new Set(pat.ledges ? pat.ledges : DEF_BIG);
+  S.big = new Set(pat.noLedges ? [0] : (pat.ledges ? pat.ledges : DEF_BIG));
 }
 
 function resetState() {
@@ -2328,6 +2291,16 @@ function initCustomiser() {
   buildConstraintToggles();
   buildSlotRow();
   refreshPoles();
+
+  /* Opening from a style path (slot mode) → pre-select the Main Color slot so the
+     user can immediately tap a color to apply it, without first tapping a slot.
+     Uses the same handler as tapping a slot. Switching slots afterwards, or
+     switching to free mode, is still driven by the user (toggleEditMode clears
+     the selection when leaving slot mode). */
+  if (S.slotMode) {
+    const _slots = computeSlots();
+    if (_slots.length) selectSlot(_slots[0].slot);
+  }
 
   /* Re-fit whenever the controls panel grows or shrinks (i.e. the control row
      count changes). We observe the controls-panel — not the poles-stage — because
@@ -2856,7 +2829,7 @@ function openPatternSwap() {
   grid.innerHTML = noPatCard + PATTERNS.map((pat,i)=>`
     <div class="flow-card" style="min-width:80px;min-height:auto;flex-shrink:0;" onclick="swapPattern(${i})">
       <div class="flow-card-visual" style="padding:6px 4px;">
-        <div class="poles-wrap" style="gap:4px;">${buildPolesFromPattern(S.constrainedPalette??0,i,[],SZ.land)}</div>
+        <div class="poles-wrap" style="gap:4px;">${buildPolesFromPattern(S.constrainedPalette, i, [], SZ.land, S.constrainedPalette!==null)}</div>
       </div>
     </div>`).join('');
 }
@@ -2874,8 +2847,8 @@ function swapPattern(idx) {
     S.activeSlot = null;
     S.slotP1 = null; S.slotP2 = null;
   } else {
-    const palIdx = S.constrainedPalette ?? 0;
-    applyPattern(idx, palIdx);   // refreshes slotP1/slotP2 for the new pattern
+    const palIdx = S.constrainedPalette;
+    applyPattern(idx, palIdx, palIdx !== null);   // refreshes slotP1/slotP2; recolor if constrained
     S.patternLoaded = idx;
     S.activeSlot = null;         // old slot ids no longer apply
   }
