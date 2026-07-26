@@ -24,7 +24,7 @@
    ══════════════════════════════════════════════ */
 :root {
   --bg:      #FFFFFF;
-  --card:    #F5F5F3;
+  --card:    #FFFEFC;
   --ink:     #1A1A1A;
   --mid:     #666;
   --lite:    #AAA;
@@ -330,6 +330,8 @@ body {
   width: 100%; max-width: 200px;
   aspect-ratio: var(--cols, 4) / var(--rows, 4);
 }
+/* Mobile-only two-row (8+7) all-colors layout — hidden on desktop. */
+.pal-sq-rows-all { display: none; }
 .pal-sq {
   border-radius: 6px;
   border: 1px solid rgba(0,0,0,0.07);
@@ -1188,16 +1190,25 @@ body {
   /* Style picker: cards taller so the pole previews read bigger. Mobile-only. */
   #s-e-style .card-grid-3 .flow-card { height: 85.5vw; max-height: 495px; }
 
-  /* ── Item 6: "Use all colours" 4×4 grid scaled down to fit inside its card ── */
-  .pal-sq-grid-all {
-    max-width: 140px !important;
-    gap: 2px !important;
-    padding: 6px !important;
+  /* ── Item 6: "Use all colours" — mobile uses an explicit 8+7 two-row layout
+     instead of the desktop square-ish grid. ── */
+  .pal-sq-grid-all { display: none !important; }
+  .pal-sq-rows-all {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px;
   }
-  .pal-sq-grid-all .pal-sq {
-    border-radius: 3px !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
+  .pal-sq-mrow {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+  }
+  .pal-sq-rows-all .pal-sq {
+    width: 28px;
+    height: 28px;
+    border-radius: 3px;
   }
 }
 
@@ -2152,7 +2163,12 @@ function palSqHTMLAll() {
   const cols = Math.ceil(Math.sqrt(COLORS.length));
   const rows = Math.ceil(COLORS.length / cols);
   const sq = c => `<div class="pal-sq" style="background:${c.hex};${c.hex==='#FFFFFF'?'border:1.5px solid rgba(0,0,0,0.13);':''}"></div>`;
-  return `<div class="pal-sq-grid-all" style="--cols:${cols};--rows:${rows}">${COLORS.map(sq).join('')}</div>`;
+  // Desktop keeps the square-ish CSS grid; mobile uses an explicit two-row flex
+  // layout (8 + 7). CSS toggles which one is visible per breakpoint.
+  const grid = `<div class="pal-sq-grid-all" style="--cols:${cols};--rows:${rows}">${COLORS.map(sq).join('')}</div>`;
+  const rowHTML = cs => `<div class="pal-sq-mrow">${cs.map(sq).join('')}</div>`;
+  const mobile = `<div class="pal-sq-rows-all">${rowHTML(COLORS.slice(0,8))}${rowHTML(COLORS.slice(8,15))}</div>`;
+  return grid + mobile;
 }
 
 /* ══════════════════════════════════════════════════
