@@ -1189,8 +1189,16 @@ body {
   #s-e-style .card-grid-3 .flow-card { height: 85.5vw; max-height: 495px; }
 
   /* ── Item 6: "Use all colours" 4×4 grid scaled down to fit inside its card ── */
-  .pal-sq-grid-all { max-width: 160px; gap: 3px; padding: 8px; }
-  .pal-sq-grid-all .pal-sq { border-radius: 4px; }
+  .pal-sq-grid-all {
+    max-width: 140px !important;
+    gap: 2px !important;
+    padding: 6px !important;
+  }
+  .pal-sq-grid-all .pal-sq {
+    border-radius: 3px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -1327,7 +1335,6 @@ body {
   </nav>
   <div class="card-screen-body fade-in">
     <div class="card-screen-hed">Pick a palette</div>
-    <div class="card-screen-sub">Or use all colors</div>
     <div class="card-grid-3" id="cs-pal-grid"></div>
   </div>
 </div>
@@ -1651,20 +1658,19 @@ const paletteColors = idx => PALETTES[idx].map(colorForHex);
 // COLORS index. Example: [2,0,1] means slot 0 = Red, slot 1 = Black, slot 2 = Ivory
 const PATTERNS = [
   {
-    name: 'No Ledges',
-    defaultPalette: 0,
-    useColors: true,
-    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
-    noLedges: true,
-    p1: Array(41).fill(0),
-    p2: Array(41).fill(0)
-  },
-  {
     name: 'Highcreek',
     defaultPalette: 0,
     useColors: true,
     p1: [10,10,10,9,8,8,8,9,10,10,10,10,10,9,8,8,9,10,10,10,10,10,9,8,8,9,10,10,10,10,9,8,9,10,10,10,9,8,9,10,10],
     p2: [10,10,10,9,8,8,8,9,10,10,10,10,10,9,8,8,9,10,10,10,10,10,9,8,8,9,10,10,10,10,9,8,9,10,10,10,9,8,9,10,10]
+  },
+  {
+    name: '50/50',
+    defaultPalette: 0,
+    useColors: true,
+    colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
+    p1: Array(41).fill(7),
+    p2: Array(41).fill(8)
   },
   {
     name: 'Naomi',
@@ -1683,12 +1689,12 @@ const PATTERNS = [
     p2: [14,1,1,1,1,1,1,1,1,1,14,1,1,1,1,1,1,1,1,14,1,1,1,1,1,1,1,1,14,1,1,1,1,1,14,1,1,1,1,1,14]
   },
   {
-    name: '50/50',
+    name: 'Garden Low',
     defaultPalette: 0,
     useColors: true,
     colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
-    p1: Array(41).fill(7),
-    p2: Array(41).fill(8)
+    p1: [12,13,13,13,4,4,4,13,13,13,12,13,13,4,4,4,4,13,13,12,13,13,13,4,4,13,13,13,12,13,13,4,13,13,12,13,13,4,13,13,12],
+    p2: [12,13,13,13,4,4,4,13,13,13,12,13,13,4,4,4,4,13,13,12,13,13,13,4,4,13,13,13,12,13,13,4,13,13,12,13,13,4,13,13,12]
   },
   {
     name: 'Alpenglow',
@@ -1707,12 +1713,13 @@ const PATTERNS = [
     p2: [2,2,2,2,2,5,5,5,5,5,5,4,4,4,4,13,13,13,13,13,8,8,8,8,10,10,10,10,10,7,7,7,7,7,7,11,11,11,11,11,11]
   },
   {
-    name: 'Garden Low',
+    name: 'No Ledges',
     defaultPalette: 0,
     useColors: true,
     colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
-    p1: [12,13,13,13,4,4,4,13,13,13,12,13,13,4,4,4,4,13,13,12,13,13,13,4,4,13,13,13,12,13,13,4,13,13,12,13,13,4,13,13,12],
-    p2: [12,13,13,13,4,4,4,13,13,13,12,13,13,4,4,4,4,13,13,12,13,13,13,4,4,13,13,13,12,13,13,4,13,13,12,13,13,4,13,13,12]
+    noLedges: true,
+    p1: Array(41).fill(0),
+    p2: Array(41).fill(0)
   },
   {
     name: 'Stripes',
