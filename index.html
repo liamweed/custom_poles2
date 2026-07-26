@@ -1189,7 +1189,8 @@ body {
   #s-e-style .card-grid-3 .flow-card { height: 85.5vw; max-height: 495px; }
 
   /* ── Item 6: "Use all colours" 4×4 grid scaled down to fit inside its card ── */
-  .pal-sq-grid-all { max-width: 160px; gap: 4px; padding: 10px; }
+  .pal-sq-grid-all { max-width: 160px; gap: 3px; padding: 8px; }
+  .pal-sq-grid-all .pal-sq { border-radius: 4px; }
 }
 
 /* ══════════════════════════════════════════════
@@ -1659,7 +1660,7 @@ const PATTERNS = [
     p2: Array(41).fill(0)
   },
   {
-    name: 'Rainbow',
+    name: 'Stripes',
     defaultPalette: 0,
     useColors: true,
     colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
@@ -1667,7 +1668,7 @@ const PATTERNS = [
     p2: [2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10,7,2,5,4,13,8,10]
   },
   {
-    name: 'Rainbow Blocks',
+    name: 'Blocks',
     defaultPalette: 0,
     useColors: true,
     colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
