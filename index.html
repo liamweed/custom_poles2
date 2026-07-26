@@ -1585,61 +1585,26 @@ const byHex  = (...names) => names.map(n => COLOR[n].hex);
    grids and swatches scale automatically to any length.
    ══════════════════════════════════════════════════ */
 const PALETTES = [
-  ['#9b103b','#f13070','#f20927','#ff7d00','#aa3e19'],
+  ['#aa3e19','#9b103b','#384939','#00798e'],
+  ['#fffae0','#000000','#1d3055','#384939'],
+  ['#9b103b','#f13070','#ff7d00','#aa3e19'],
   ['#b6e0f7','#4f4192','#f20927','#fffae0'],
   ['#fff382','#aa3e19','#00798e','#1d3055'],
   ['#384939','#fff382','#a2d5a4','#b3e14f'],
-  ['#aa3e19','#9b103b','#fffae0','#fff382'],
-  ['#00798e','#fff382','#4f4192','#aa3e19'],
-  ['#384939','#9b103b','#aa3e19','#b6e0f7'],
   ['#a2d5a4','#1d3055','#00798e','#9b103b'],
-  ['#fffae0','#000000','#1d3055','#384939'],
-  ['#b3e14f','#384939','#aa3e19','#00798e'],
   ['#b6e0f7','#4f4192','#b3e14f','#00798e'],
   ['#f20927','#fff382','#1d3055','#fffae0'],
-  ['#000000','#1d3055','#384939','#a2d5a4'],
-  ['#aa3e19','#9b103b','#384939','#00798e'],
-  ['#a2d5a4','#384939','#aa3e19','#9b103b'],
   ['#f13070','#b3e14f','#9b103b','#000000'],
-  ['#aa3e19','#b3e14f','#00798e','#9b103b'],
   ['#9b103b','#b6e0f7','#f13070','#fff382'],
-  ['#00798e','#ff7d00','#aa3e19'],
-  ['#f20927','#1d3055','#fffae0'],
   ['#a2d5a4','#b3e14f','#384939'],
-  ['#fffae0','#00798e','#f20927'],
-  ['#aa3e19','#b3e14f','#9b103b'],
-  ['#1d3055','#fff382','#fffae0'],
+  ['#b6e0f7','#00798e','#1d3055'],
   ['#9b103b','#f13070','#4f4192'],
-  ['#00798e','#4f4192','#b6e0f7'],
-  ['#fffae0','#384939','#ff7d00'],
-  ['#f20927','#fff382','#b3e14f'],
+  ['#00798e','#ff7d00','#aa3e19'],
   ['#9b103b','#1d3055','#b6e0f7'],
-  ['#a2d5a4','#384939','#f13070'],
-  ['#4f4192','#00798e','#b3e14f'],
-  ['#b6e0f7','#aa3e19','#a2d5a4'],
-  ['#9b103b','#fff382','#000000'],
   ['#fffae0','#b3e14f','#9b103b'],
-  ['#f20927','#000000','#fffae0'],
-  ['#aa3e19','#fff382','#00798e'],
-  ['#4f4192','#f13070','#fffae0'],
-  ['#b6e0f7','#a2d5a4','#9b103b'],
-  ['#4f4192','#f20927','#fffae0'],
-  ['#9b103b','#00798e','#aa3e19'],
-  ['#ff7d00','#aa3e19','#384939'],
-  ['#aa3e19','#9b103b','#b3e14f'],
-  ['#fffae0','#384939','#b3e14f'],
-  ['#9b103b','#a2d5a4','#b6e0f7'],
-  ['#4f4192','#00798e','#a2d5a4'],
-  ['#b6e0f7','#00798e','#fff382'],
-  ['#1d3055','#000000','#f20927'],
-  ['#00798e','#4f4192','#9b103b'],
-  ['#000000','#fffae0'],
-  ['#b3e14f','#fff382'],
-  ['#384939','#9b103b'],
-  ['#9b103b','#b3e14f'],
-  ['#b6e0f7','#fff382'],
-  ['#aa3e19','#b3e14f'],
-  ['#384939','#fffae0']
+  ['#384939','#f20927','#000000'],
+  ['#384939','#00798e','#aa3e19'],
+  ['#4f4192','#00798e','#a2d5a4']
 ];
 
 /* Palettes are literal hex arrays. Everything else in the app that consumes a
@@ -1804,6 +1769,13 @@ const PATTERNS = [
     colorOrder: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],
     p1: [0,0,0,7,6,5,4,8,0,0,0,0,0,0,8,8,8,8,0,0,0,0,8,8,0,0,0,0,0,0,8,0,0,0,0,0,0,8,0,0,0],
     p2: [0,0,0,7,6,5,4,8,0,0,0,0,0,0,8,8,8,8,0,0,0,0,8,8,0,0,0,0,0,0,8,0,0,0,0,0,0,8,0,0,0]
+  },
+  {
+    name: 'Watershed',
+    defaultPalette: 0,
+    useColors: true,
+    p1: [10,10,10,9,8,8,8,9,10,10,10,10,10,9,8,8,9,10,10,10,10,10,9,8,8,9,10,10,10,10,9,8,9,10,10,10,9,8,9,10,10],
+    p2: [10,10,10,9,8,8,8,9,10,10,10,10,10,9,8,8,9,10,10,10,10,10,9,8,8,9,10,10,10,10,9,8,9,10,10,10,9,8,9,10,10]
   }
 ];
 PATTERNS.forEach(p => { ['p1','p2'].forEach(k => { while(p[k].length<41)p[k].push(0); p[k]=p[k].slice(0,41); }); });
@@ -2206,7 +2178,7 @@ function initChooseStyle() {
       <div class="flow-card-visual"><div class="mystery-q-big" style="font-size:clamp(3rem,10vw,6rem);">✎</div></div>
       <div class="flow-card-footer style-name"><div class="flow-card-label">No style — go straight to editor</div></div>
     </div>`;
-  grid.innerHTML = styleCards + noStyleCard;
+  grid.innerHTML = noStyleCard + styleCards;
   // Render poles after layout settles. Double rAF so the fixed card/visual height
   // is final before we measure each visual and size its poles to match. Mobile
   // style cards are taller, so enlarge the poles beyond the proportional growth.
