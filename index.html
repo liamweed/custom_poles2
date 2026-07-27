@@ -839,7 +839,16 @@ body {
   font-size: 0.92rem; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--mid); max-width: 320px; line-height: 1.55; margin-bottom: 28px;
 }
-.mystery-ctas { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.mystery-ctas { display: flex; flex-direction: column; align-items: center; gap: 12px; width: min(320px, 100%); }
+.mystery-ctas .btn.lg { width: 100%; }
+.mystery-comment {
+  width: 100%; box-sizing: border-box;
+  min-height: 150px; resize: vertical;
+  border: 1.5px solid #E8E8E8; border-radius: 8px;
+  padding: 10px 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; color: var(--ink);
+}
+.mystery-comment::placeholder { color: var(--mid); }
 .myst-skip {
   background: none; border: none; cursor: pointer;
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -1424,7 +1433,7 @@ body {
     <div class="card-grid-3" id="land-grid">
       <div class="flow-card" onclick="startChooseStyle()">
         <div class="flow-card-visual" id="land-style-vis"></div>
-        <div class="flow-card-footer"><div class="flow-card-label">Choose a style</div></div>
+        <div class="flow-card-footer"><div class="flow-card-label">Choose a palette/style</div></div>
       </div>
       <div class="flow-card" onclick="startScratch()">
         <div class="flow-card-visual" id="land-scratch-vis"></div>
@@ -1600,9 +1609,11 @@ body {
     <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
   </nav>
   <div class="mystery-body">
-    <div class="mystery-h1">Let us hand pick a unique design for your twIIgs poles.</div>
+    <div class="mystery-h1">Let us hand pick a design for your twIIgs poles.</div>
     <div class="mystery-ctas">
-      <button class="btn lg accent" onclick="doOrder()">Order a mystery design →</button>
+      <textarea id="mystery-comment" class="mystery-comment" maxlength="400"
+        placeholder="Favorite colors, requests, anything you want us to know..."></textarea>
+      <button class="btn lg accent" onclick="doMysteryOrder()">Surprise me →</button>
       <button class="myst-skip" onclick="goTo('land')">Actually, let me design mine</button>
     </div>
   </div>
@@ -3511,6 +3522,18 @@ function doOrder() {
      Replace '#' below with your Shopify checkout URL.
      ─────────────────────────────────────────────── */
   window.open('#','_blank');
+}
+function doMysteryOrder() {
+  const commentEl = document.getElementById('mystery-comment');
+  const mysteryComment = commentEl ? commentEl.value.trim() : '';
+
+  // Track the Mystery Order event via Klaviyo onsite JS
+  window._learnq = window._learnq || [];
+  window._learnq.push(['track', 'Mystery Order', {
+    comment: mysteryComment
+  }]);
+
+  doOrder();
 }
 function openSave() {
   buildOvPoles();
