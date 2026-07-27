@@ -227,7 +227,7 @@ body {
   cursor: pointer; position: relative;
   display: flex; flex-direction: column;
   background: var(--card);
-  border: 2px solid transparent;
+  border: 1.5px solid #E8E8E8;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   touch-action: manipulation;
   min-height: 0; /* let the grid control height so ≤4 cards always fit on screen */
@@ -395,7 +395,7 @@ body {
 /* Slightly off-white editor surface so white rings/ledges are visible against it.
    Overriding --bg here recolors the stage, controls panel and action bar together;
    the save overlay lives outside #s-cust, so it stays pure white. */
-#s-cust { --bg: #F1F1EE; background: var(--bg); }
+#s-cust { --bg: var(--card); background: var(--bg); }
 .cust-body {
   flex: 1; display: flex; flex-direction: column;
   overflow: hidden; min-height: 0;
@@ -1213,6 +1213,117 @@ body {
 }
 
 /* ══════════════════════════════════════════════
+   MAKE YOUR OWN PALETTE
+   ══════════════════════════════════════════════ */
+/* "Make your own palette" card visual — a large centered plus, styled like the
+   mystery "?" card so it matches the rest of the palette-picker grid. */
+.cp-plus-icon {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 300;
+  font-size: clamp(3rem, 12vw, 6rem);
+  color: rgba(0,0,0,0.22);
+  line-height: 1; user-select: none;
+  transition: color 0.18s;
+}
+.flow-card:hover .cp-plus-icon { color: rgba(0,0,0,0.34); }
+
+/* Full-viewport flex column: color grid on top, palette slots + Next below. */
+#s-custom-palette.active { height: 100dvh; overflow: hidden; }
+.cp-body {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  padding: 8px 12px calc(8px + var(--safe-b));
+}
+/* TOP — heading + color grid; all 15 colors fit at once, never scrolls */
+.cp-top {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.cp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 13px;
+  padding: 13px 4px;
+  align-content: start;
+}
+.cp-swatch {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding-bottom: 4px;
+  cursor: pointer; touch-action: manipulation;
+  transition: transform 0.1s;
+}
+.cp-swatch:active { transform: scale(0.9); }
+.cp-swatch-circle {
+  width: clamp(43px, 13.5vw, 65px);
+  height: clamp(43px, 13.5vw, 65px);
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.08);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.cp-swatch.selected .cp-swatch-circle { transform: scale(1.06); }
+.cp-swatch-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.58rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--lite); text-align: center; line-height: 1.1; max-width: 64px;
+}
+.cp-swatch.selected .cp-swatch-name { color: var(--ink); }
+
+/* BOTTOM — palette slots + Next button. Content-sized with tight padding/gaps so
+   the section stays compact; the color grid above takes the freed space. Slot,
+   label and button sizes are unchanged. */
+.cp-bottom {
+  flex-shrink: 0;
+  display: flex; flex-direction: column;
+  gap: 9px; padding-top: 8px; padding-bottom: 8px;
+  border-top: 1.5px solid rgba(0,0,0,0.08);
+}
+/* "Your palette" label — larger/bolder than the shared card sub-heading, scoped
+   to this screen only. */
+#s-custom-palette .card-screen-sub {
+  color: #000000;
+  font-size: 1rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.cp-slot-row {
+  display: flex; align-items: center; gap: 8px;
+  flex: 0 0 auto;
+  overflow-x: auto; overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.cp-slot-row::-webkit-scrollbar { display: none; }
+/* Slots sized so a full row of 6 fills the available width edge-to-edge:
+   width = (100vw − body padding 24px − 5 gaps × 8px) / 6 = (100vw − 64px) / 6.
+   Capped at 80px so desktop slots stay ~80px. aspect-ratio keeps them square. */
+.cp-slot, .cp-slot-add {
+  width: min(80px, calc((100vw - 64px) / 6));
+  height: auto; aspect-ratio: 1;
+  border-radius: 10px; flex-shrink: 0;
+}
+.cp-slot { padding: 0; }
+.cp-slot.empty { border: 2px dashed rgba(0,0,0,0.25); background: transparent; }
+.cp-slot.filled {
+  border: 1px solid rgba(0,0,0,0.08);
+  cursor: pointer; box-shadow: var(--sh);
+  transition: transform 0.1s;
+}
+.cp-slot.filled:active { transform: scale(0.92); }
+.cp-slot-add {
+  border: 2px solid rgba(0,0,0,0.2); background: transparent;
+  font-size: 1.7rem; font-weight: 300; line-height: 1; color: var(--mid);
+  cursor: pointer; touch-action: manipulation;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color var(--t), color var(--t);
+}
+.cp-slot-add:active { transform: scale(0.92); }
+@media (hover:hover) { .cp-slot-add:hover { border-color: var(--ink); color: var(--ink); } }
+.cp-next { width: 100%; flex-shrink: 0; min-height: 52px; font-size: 1rem; }
+.cp-next:disabled {
+  opacity: 0.4; box-shadow: none;
+  cursor: not-allowed; pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════
    TOAST NOTIFICATION
    ══════════════════════════════════════════════ */
 #toast {
@@ -1356,11 +1467,32 @@ body {
 <div id="s-e-style" class="screen">
   <nav class="nav">
     <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <button class="btn sm ghost" onclick="goTo('e-palette')">← Back</button>
+    <button class="btn sm ghost" onclick="styleBack()">← Back</button>
   </nav>
   <div class="card-screen-body fade-in">
     <div class="card-screen-hed">Pick a style</div>
     <div class="card-grid-3" id="cs-style-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
+     MAKE YOUR OWN PALETTE
+     ═══════════════════════════ -->
+<div id="s-custom-palette" class="screen">
+  <nav class="nav">
+    <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
+    <button class="btn sm ghost" onclick="goTo('e-palette')">← Back</button>
+  </nav>
+  <div class="cp-body fade-in">
+    <div class="cp-top">
+      <div class="card-screen-hed">Pick your colors</div>
+      <div class="cp-grid" id="cp-color-grid"></div>
+    </div>
+    <div class="cp-bottom">
+      <div class="card-screen-sub">Your palette</div>
+      <div class="cp-slot-row" id="cp-slot-row"></div>
+      <button class="btn accent cp-next" id="cp-next-btn" onclick="customPaletteNext()" disabled>Next</button>
+    </div>
   </div>
 </div>
 
@@ -1831,6 +1963,7 @@ const S = {
   pulsed:      false,
   // constraint state
   constrainedPalette: null,  // palette index if constrained, else null
+  customPalette:      null,  // array of hex values if a user-built palette is in play, else null
   patternLoaded:      null,  // pattern index if a pattern was loaded
   unlocked:           false, // true = show all 12 despite constrainedPalette
   // editing mode
@@ -1967,14 +2100,16 @@ function buildPoleHTML(hexArr, D, poleKey, interactive) {
    use PALETTES[palIdx]. (Unchanged legacy behavior.)
    recolor=true : recolor the style into PALETTES[palIdx], assigning palette
    colors to the style's slots in pat.colorOrder priority. */
-function styleColorFor(pat, palIdx, recolor) {
+function styleColorFor(pat, palIdx, recolor, palHexOverride) {
   if (!recolor) {
     const base = pat.palette ? pat.palette
       : pat.useColors ? COLORS.map(c => c.hex)
       : PALETTES[palIdx];
     return si => base[si % base.length];
   }
-  const palHex = PALETTES[palIdx];
+  /* palHexOverride (a custom palette's hex array) takes precedence over the
+     standard PALETTES[palIdx] when recoloring a style into those colors. */
+  const palHex = palHexOverride || PALETTES[palIdx];
   const order  = pat.colorOrder || COLORS.map((_, i) => i);
   const used   = new Set([...pat.p1, ...pat.p2]);
   const ranked = order.filter(si => used.has(si));
@@ -1983,9 +2118,9 @@ function styleColorFor(pat, palIdx, recolor) {
   return si => (si in map) ? map[si] : palHex[0];
 }
 
-function buildPolesFromPattern(palIdx, patIdx, sc, D, recolor = false) {
+function buildPolesFromPattern(palIdx, patIdx, sc, D, recolor = false, palHexOverride = null) {
   const pat = PATTERNS[patIdx];
-  const resolve = styleColorFor(pat, palIdx, recolor);
+  const resolve = styleColorFor(pat, palIdx, recolor, palHexOverride);
   const bigSet = pat.noLedges ? new Set([0]) : (pat.ledges ? new Set(pat.ledges) : DEF_BIG);
   const buildStatic = arr => {
     let r='';
@@ -2068,10 +2203,10 @@ function scaleD(D, k) {
 
 /* Build a poles-wrap HTML sized to fit a given element. `scale` nudges the poles
    larger/smaller on top of the fitted size (1 = exact fit). */
-function polesHTMLForCard(palIdx, patIdx, el, fill = 0.88, scale = 1, recolor = false) {
+function polesHTMLForCard(palIdx, patIdx, el, fill = 0.88, scale = 1, recolor = false, palHexOverride = null) {
   let D = szForEl(el, fill);
   if (scale !== 1) D = scaleD(D, scale);
-  return `<div class="poles-wrap">${buildPolesFromPattern(palIdx, patIdx, [], D, recolor)}</div>`;
+  return `<div class="poles-wrap">${buildPolesFromPattern(palIdx, patIdx, [], D, recolor, palHexOverride)}</div>`;
 }
 
 function goTo(id) {
@@ -2082,17 +2217,25 @@ function goTo(id) {
   if (id==='land')      initLanding();
   if (id==='e-palette') initChoosePalette();
   if (id==='e-style')   initChooseStyle();
+  if (id==='custom-palette') initCustomPalette();
   if (id==='cust')      initCustomiser();
 }
 
-/* entry flow state */
-const E = { palette:null, pattern:null };
+/* entry flow state.
+   customPalette: null, or an array of hex values for a user-built palette.
+   styleBackTo:   which screen the style picker's Back arrow returns to
+                  ('e-palette' for the standard flow, 'custom-palette' when we
+                  arrived from the "Make your own palette" flow). */
+const E = { palette:null, pattern:null, customPalette:null, styleBackTo:'e-palette' };
 
 /* Start the "Choose a style" flow: palette (step 1) → style (step 2) → editor. */
-function startChooseStyle() { E.palette = null; E.pattern = null; goTo('e-palette'); }
+function startChooseStyle() { E.palette = null; E.pattern = null; E.customPalette = null; goTo('e-palette'); }
 
 /* Step 1 pick: palette index, or null for "Use all colors". */
-function pickChoosePalette(i) { E.palette = i; goTo('e-style'); }
+function pickChoosePalette(i) { E.palette = i; E.customPalette = null; E.styleBackTo = 'e-palette'; goTo('e-style'); }
+
+/* Style picker Back arrow — returns to whichever screen preceded it. */
+function styleBack() { goTo(E.styleBackTo || 'e-palette'); }
 /* Step 2 pick: pattern index, or null for "No style — go straight to editor". */
 function pickChooseStyle(i)   { E.pattern = i; launchChooseStyle(); }
 
@@ -2188,7 +2331,97 @@ function initChoosePalette() {
     <div class="flow-card" onclick="pickChoosePalette(${i})">
       <div class="flow-card-visual">${palSqHTML(pal)}</div>
     </div>`).join('');
-  grid.innerHTML = allCard + palCards;
+  const makeCard = `
+    <div class="flow-card" onclick="goTo('custom-palette')">
+      <div class="flow-card-visual"><div class="cp-plus-icon">+</div></div>
+      <div class="flow-card-footer style-name"><div class="flow-card-label">Make your own palette</div></div>
+    </div>`;
+  grid.innerHTML = allCard + palCards + makeCard;
+}
+
+/* ══════════════════════════════════════════════════
+   MAKE YOUR OWN PALETTE
+   Build a 2–6 color palette from the full COLORS set, then carry it into the
+   style picker / customiser via E.customPalette. cpSlots holds one hex (or null
+   for empty) per slot; no duplicates are allowed. ══════════════════════════════════════════════════ */
+let cpSlots = [null, null, null, null];
+
+function initCustomPalette() {
+  cpSlots = [null, null, null, null];   // fresh 4 empty slots each visit
+  renderCPGrid();
+  renderCPSlots();
+}
+
+/* Color grid — all COLORS in customiser order; selected swatches get a ring. */
+function renderCPGrid() {
+  const grid = document.getElementById('cp-color-grid');
+  if (!grid) return;
+  grid.innerHTML = COLORS.map(c => {
+    const sel  = cpSlots.some(s => s && s.toLowerCase()===c.hex.toLowerCase());
+    // 3px ring in the swatch's own color; box-shadow keeps it within the element
+    // bounds so it never bleeds into the color name below.
+    const ring = sel ? `box-shadow:0 0 0 3px ${c.hex};` : '';
+    return `<div class="cp-swatch${sel?' selected':''}" onclick="cpToggleColor('${c.hex}')">
+      <div class="cp-swatch-circle" style="background:${c.hex};${ring}"></div>
+      <div class="cp-swatch-name">${c.name}</div>
+    </div>`;
+  }).join('');
+}
+
+/* Slot row — one square per slot (dashed when empty, solid when filled), plus a
+   "+" to add slots up to 6, and the Next button's enabled/disabled state. */
+function renderCPSlots() {
+  const row = document.getElementById('cp-slot-row');
+  if (!row) return;
+  let html = cpSlots.map((hex,i) => {
+    if (hex) {
+      const border = hex.toLowerCase()==='#fffae0' ? 'border-color:rgba(0,0,0,0.18);' : '';
+      return `<button class="cp-slot filled" style="background:${hex};${border}" onclick="cpRemoveSlot(${i})" aria-label="Remove color"></button>`;
+    }
+    return `<div class="cp-slot empty"></div>`;
+  }).join('');
+  if (cpSlots.length < 6) html += `<button class="cp-slot-add" onclick="cpAddSlot()" aria-label="Add slot">+</button>`;
+  row.innerHTML = html;
+  const btn = document.getElementById('cp-next-btn');
+  if (btn) btn.disabled = cpSlots.filter(Boolean).length < 2;
+}
+
+/* Tap a color: remove+deselect if already used, else drop into the next empty slot. */
+function cpToggleColor(hex) {
+  const at = cpSlots.findIndex(s => s && s.toLowerCase()===hex.toLowerCase());
+  if (at !== -1) {
+    cpSlots[at] = null;                 // already in a slot → remove & deselect
+  } else {
+    const empty = cpSlots.findIndex(s => !s);
+    if (empty === -1) return;           // no free slot — add one with "+" first
+    cpSlots[empty] = hex;
+  }
+  renderCPGrid();
+  renderCPSlots();
+}
+
+/* Tap a filled slot: free it (and deselect the color in the grid above). */
+function cpRemoveSlot(i) {
+  cpSlots[i] = null;
+  renderCPGrid();
+  renderCPSlots();
+}
+
+function cpAddSlot() {
+  if (cpSlots.length >= 6) return;
+  cpSlots.push(null);
+  renderCPSlots();
+}
+
+/* Next → carry the custom palette into the style picker. */
+function customPaletteNext() {
+  const pal = cpSlots.filter(Boolean);
+  if (pal.length < 2) return;
+  E.palette       = null;         // no standard palette selected
+  E.customPalette = pal;
+  E.pattern       = null;
+  E.styleBackTo   = 'custom-palette';
+  goTo('e-style');
 }
 
 /* STEP 2 — style picker. Every style rendered in the chosen palette colors
@@ -2197,7 +2430,8 @@ function initChoosePalette() {
 function initChooseStyle() {
   const grid = document.getElementById('cs-style-grid');
   if (!grid) return;
-  const recolor = E.palette !== null;              // recolor previews into the palette
+  const palOverride = E.customPalette || null;      // custom palette hex array, if any
+  const recolor = E.palette !== null || palOverride !== null;  // recolor previews into the palette
   const palIdx  = E.palette;                        // null → native (all colors)
   const styleCards = PATTERNS.map((pat,i) => `
     <div class="flow-card" onclick="pickChooseStyle(${i})">
@@ -2219,7 +2453,7 @@ function initChooseStyle() {
       const pi = +el.dataset.pat;
       // Tall style-picker cards: fill 0.78 of the visual so poles keep a clear
       // top/bottom margin and never look clipped against the card edges.
-      el.innerHTML = polesHTMLForCard(palIdx, pi, el, 0.78, poleScale, recolor);
+      el.innerHTML = polesHTMLForCard(palIdx, pi, el, 0.78, poleScale, recolor, palOverride);
     });
   }));
 }
@@ -2233,11 +2467,13 @@ function initChooseStyle() {
      all colors + no style → no constraints, free mode (same as build from scratch) */
 function launchChooseStyle() {
   resetState();
-  S.constrainedPalette = E.palette;               // null when all colors
+  S.constrainedPalette = E.palette;               // null when all colors / custom palette
+  S.customPalette      = E.customPalette || null; // user-built palette, if any
   S.patternLoaded      = E.pattern;               // null when no style
   S.unlocked           = false;
+  const recolor = E.palette !== null || S.customPalette !== null;
   if (E.pattern !== null) {
-    applyPattern(E.pattern, E.palette, E.palette !== null);
+    applyPattern(E.pattern, E.palette, recolor, S.customPalette);
   }
   S.slotMode = E.pattern !== null;                // slot mode only when a style is chosen
   goTo('cust');
@@ -2251,9 +2487,9 @@ function startScratch() {
   goTo('cust');
 }
 
-function applyPattern(patIdx, palIdx, recolor = false) {
+function applyPattern(patIdx, palIdx, recolor = false, palHexOverride = null) {
   const pat = PATTERNS[patIdx];
-  const resolve = styleColorFor(pat, palIdx, recolor);
+  const resolve = styleColorFor(pat, palIdx, recolor, palHexOverride);
   S.p1 = pat.p1.map(resolve);
   S.p2 = pat.p2.map(resolve);
   /* record each ring's raw pattern slot index so slot mode can group rings */
@@ -2274,6 +2510,7 @@ function resetState() {
   S.ledgeBrush = null;
   S.pulsed = false;
   S.constrainedPalette = null;
+  S.customPalette = null;
   S.patternLoaded = null;
   S.unlocked = false;
   S.slotMode = false;
@@ -2461,8 +2698,8 @@ function initCustomiser() {
 function buildColorPicker() {
   const colors = availColors();
   const row = document.getElementById('color-picker-row');
-  /* When the full color set is in play (not a 6-color palette), let the picker fill the panel */
-  const allColors = (S.unlocked || S.constrainedPalette===null);
+  /* When the full color set is in play (not a constrained palette), let the picker fill the panel */
+  const allColors = (S.unlocked || (S.constrainedPalette===null && !S.customPalette));
   const wrap = row.closest('.color-picker-scroll-wrap');
   if (wrap) {
     wrap.classList.toggle('all-colors', allColors);
@@ -2500,7 +2737,9 @@ function splitThreeRows(arr) {
 }
 
 function availColors() {
-  if (S.unlocked || S.constrainedPalette===null) return COLORS;
+  if (S.unlocked) return COLORS;
+  if (S.customPalette) return S.customPalette.map(colorForHex);
+  if (S.constrainedPalette===null) return COLORS;
   return paletteColors(S.constrainedPalette);
 }
 
@@ -2569,7 +2808,7 @@ function buildConstraintToggles() {
   const unlockBtn = document.getElementById('unlock-colors-btn');
   const changePatBtn = document.getElementById('change-pattern-btn');
   const modeBtn = document.getElementById('edit-mode-btn');
-  const showUnlock = S.constrainedPalette!==null;
+  const showUnlock = S.constrainedPalette!==null || S.customPalette!==null;
   const showMode   = S.patternLoaded!==null;   // mode toggle lives only while a pattern is bound
   // Row is shown if either the unlock pill or the edit-mode pill is visible
   row.style.display = (showUnlock || showMode) ? 'flex' : 'none';
@@ -2832,7 +3071,7 @@ function openPatternSwap() {
   grid.innerHTML = noPatCard + PATTERNS.map((pat,i)=>`
     <div class="flow-card" style="min-width:80px;min-height:auto;flex-shrink:0;" onclick="swapPattern(${i})">
       <div class="flow-card-visual" style="padding:6px 4px;">
-        <div class="poles-wrap" style="gap:4px;">${buildPolesFromPattern(S.constrainedPalette, i, [], SZ.land, S.constrainedPalette!==null)}</div>
+        <div class="poles-wrap" style="gap:4px;">${buildPolesFromPattern(S.constrainedPalette, i, [], SZ.land, S.constrainedPalette!==null||S.customPalette!==null, S.customPalette)}</div>
       </div>
     </div>`).join('');
 }
@@ -2851,7 +3090,7 @@ function swapPattern(idx) {
     S.slotP1 = null; S.slotP2 = null;
   } else {
     const palIdx = S.constrainedPalette;
-    applyPattern(idx, palIdx, palIdx !== null);   // refreshes slotP1/slotP2; recolor if constrained
+    applyPattern(idx, palIdx, palIdx !== null || S.customPalette !== null, S.customPalette);   // refreshes slotP1/slotP2; recolor if constrained
     S.patternLoaded = idx;
     S.activeSlot = null;         // old slot ids no longer apply
   }
