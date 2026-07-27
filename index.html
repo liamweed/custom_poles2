@@ -1417,11 +1417,8 @@ body {
      ═══════════════════════════ -->
 <div id="s-land" class="screen active">
   <nav class="nav">
+    <a class="btn sm ghost" href="https://twiigs.co" target="_blank">Back to Home</a>
     <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <div class="nav-right">
-      <span class="nav-label">Customization Tool</span>
-      <a class="btn sm ghost" href="https://twiigs.co" target="_blank">Back to Home</a>
-    </div>
   </nav>
   <div class="card-screen-body fade-in">
     <div class="card-grid-3" id="land-grid">
@@ -1452,8 +1449,8 @@ body {
      ═══════════════════════════ -->
 <div id="s-e-palette" class="screen">
   <nav class="nav">
+    <button class="btn sm ghost" onclick="goBack()">← Back</button>
     <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <button class="btn sm ghost" onclick="goTo('land')">← Back</button>
   </nav>
   <div class="card-screen-body fade-in">
     <div class="card-screen-hed">Pick a palette</div>
@@ -1466,8 +1463,8 @@ body {
      ═══════════════════════════ -->
 <div id="s-e-style" class="screen">
   <nav class="nav">
+    <button class="btn sm ghost" onclick="goBack()">← Back</button>
     <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <button class="btn sm ghost" onclick="styleBack()">← Back</button>
   </nav>
   <div class="card-screen-body fade-in">
     <div class="card-screen-hed">Pick a style</div>
@@ -1480,8 +1477,8 @@ body {
      ═══════════════════════════ -->
 <div id="s-custom-palette" class="screen">
   <nav class="nav">
+    <button class="btn sm ghost" onclick="goBack()">← Back</button>
     <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <button class="btn sm ghost" onclick="goTo('e-palette')">← Back</button>
   </nav>
   <div class="cp-body fade-in">
     <div class="cp-top">
@@ -1501,9 +1498,8 @@ body {
      ═══════════════════════════ -->
 <div id="s-cust" class="screen">
   <nav class="nav">
-    <button class="btn sm ghost" onclick="goTo('land')" style="padding:0 10px;">← Back</button>
+    <button class="btn sm ghost" onclick="goBack()" style="padding:0 10px;">← Back</button>
     <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <div style="width:72px"></div>
   </nav>
   <div class="cust-body">
     <!-- POLES -->
@@ -1600,8 +1596,8 @@ body {
      ═══════════════════════════ -->
 <div id="s-mystery" class="screen">
   <nav class="nav">
+    <button class="btn sm ghost" onclick="goBack()">← Back</button>
     <svg class="logo-svg" onclick="goTo('land')" role="img" aria-label="twIIgs"><use href="#logo-sym"/></svg>
-    <button class="btn sm ghost" onclick="goTo('land')">← Back</button>
   </nav>
   <div class="mystery-body">
     <div class="mystery-h1">Let us hand pick a unique design for your twIIgs poles.</div>
@@ -1754,7 +1750,6 @@ const PALETTES = [
   ['#9b103b','#1d3055','#b6e0f7'],
   ['#fffae0','#b3e14f','#9b103b'],
   ['#384939','#f20927','#000000'],
-  ['#384939','#00798e','#9b103b'],
   ['#4f4192','#00798e','#a2d5a4']
 ];
 
@@ -2095,11 +2090,44 @@ function buildPoleHTML(hexArr, D, poleKey, interactive) {
     <div class="pole-shaft" style="width:${D.shw}px;height:${D.shh}px;"></div></div>`;
 }
 
+/* Color-remap preference order. When a style's native color is not available in
+   the chosen palette, buildPolesFromPattern() substitutes the first color from
+   that style color's list below that IS in the palette. Keyed by COLORS name. */
+const COLOR_REMAP = {
+  'Black': ['Navy', 'Olive', 'Wine', 'Clay', 'Violet', 'Teal', 'Ivory'],
+  'Ivory': ['Sky', 'Sage', 'Teal', 'Olive', 'Yellow', 'Lime', 'Raspberry'],
+  'Red': ['Raspberry', 'Orange', 'Lime', 'Yellow', 'Wine', 'Violet', ''],
+  'Clay': ['Wine', 'Olive', 'Navy', 'Teal', 'Violet', 'Black', 'ivory'],
+  'Yellow': ['Orange', 'Raspberry', 'Sage', 'Sky', 'Lime', 'Red'],
+  'Orange': ['Red', 'Yellow', 'Raspberry', 'LIme', 'Clay', ''],
+  'Raspberry': ['Orange', 'Red', 'Violet', 'Yellow', 'LIme', 'sage', 'Sky'],
+  'Wine': ['Olive', 'Teal', 'Clay', 'Navy', 'Raspberry', 'Violet'],
+  'Sky Blue': ['Sage', 'Ivory', 'Teal', 'Yellow', 'Raspberry', 'Violet'],
+  'Teal': ['Navy', 'Olive', 'WIne', 'Clay', 'Sage'],
+  'Navy': ['Olive', 'Wine', 'Teal', 'Clay', 'Black', 'Sky', 'Ivory'],
+  'Violet': ['Teal', 'Wine', 'Raspberry', 'Sage', 'Sky'],
+  'Lime': ['Sage', 'Yellow', 'Sky Blue', 'Teal'],
+  'Sage': ['Lime', 'Sky Blue', 'Teal', 'Ivory', 'Olive'],
+  'Olive': ['Teal', 'Wine', 'Clay', 'Navy', 'Violet', 'Lime', 'Black'],
+};
+
+/* Resolve a (possibly mistyped/short) COLOR_REMAP substitute name to its COLORS
+   hex — case-insensitive, tolerating e.g. 'Sky' for 'Sky Blue'. Returns null for
+   names (incl. '') with no COLORS match, so they're skipped during the search. */
+function remapHexForName(name) {
+  const n = (name || '').trim().toLowerCase();
+  if (!n) return null;
+  const c = COLORS.find(c => c.name.toLowerCase() === n)
+        || COLORS.find(c => c.name.toLowerCase().startsWith(n));
+  return c ? c.hex : null;
+}
+
 /* Per-ring slot index → hex resolver for a pattern.
    recolor=false: native look — useColors styles use the full COLORS list, others
    use PALETTES[palIdx]. (Unchanged legacy behavior.)
-   recolor=true : recolor the style into PALETTES[palIdx], assigning palette
-   colors to the style's slots in pat.colorOrder priority. */
+   recolor=true : keep each style color that is already in the palette; remap the
+   rest via COLOR_REMAP to the first available palette substitute, never reusing a
+   color already taken by another slot. */
 function styleColorFor(pat, palIdx, recolor, palHexOverride) {
   if (!recolor) {
     const base = pat.palette ? pat.palette
@@ -2109,12 +2137,48 @@ function styleColorFor(pat, palIdx, recolor, palHexOverride) {
   }
   /* palHexOverride (a custom palette's hex array) takes precedence over the
      standard PALETTES[palIdx] when recoloring a style into those colors. */
-  const palHex = palHexOverride || PALETTES[palIdx];
-  const order  = pat.colorOrder || COLORS.map((_, i) => i);
-  const used   = new Set([...pat.p1, ...pat.p2]);
-  const ranked = order.filter(si => used.has(si));
-  const map = {};
-  ranked.forEach((si, k) => { map[si] = palHex[k % palHex.length]; });
+  const palHex    = palHexOverride || PALETTES[palIdx];
+  const palLc     = palHex.map(h => h.toLowerCase());
+  const nativeArr = pat.palette ? pat.palette : COLORS.map(c => c.hex);
+  const nativeOf  = si => nativeArr[si % nativeArr.length];
+  const order     = pat.colorOrder || COLORS.map((_, i) => i);
+  const used      = [...new Set([...pat.p1, ...pat.p2])];
+  // Slots in order of visual weight (heaviest first): colorOrder ranks them, and
+  // any slot it omits follows in its natural order.
+  const ranked    = order.filter(si => used.includes(si));
+  used.forEach(si => { if (!ranked.includes(si)) ranked.push(si); });
+
+  const map   = {};
+  const count = new Map(palLc.map(h => [h, 0]));   // palette hex → # of slots mapped to it
+  const use   = h => count.set(h.toLowerCase(), count.get(h.toLowerCase()) + 1);
+  // Eligible pool = the palette colors used the fewest times so far. While any
+  // color is still unused this excludes every already-used color, so no color
+  // repeats until all have been used once; once all are level the pool resets to
+  // the whole palette, so overflow fills evenly (2 of each before any gets 3).
+  const eligible = () => {
+    const min = Math.min(...count.values());
+    return palHex.filter(h => count.get(h.toLowerCase()) === min);
+  };
+  // Assign each slot, heaviest first, to the closest color in the current pool:
+  // the native color itself if still available, else the first COLOR_REMAP
+  // preference that is in the pool, else the earliest eligible palette color.
+  ranked.forEach(si => {
+    const pool   = eligible();
+    const poolLc = pool.map(h => h.toLowerCase());
+    const nh     = nativeOf(si).toLowerCase();
+    let chosen;
+    if (poolLc.includes(nh)) {
+      chosen = pool[poolLc.indexOf(nh)];
+    } else {
+      const subs = COLOR_REMAP[colorForHex(nativeOf(si)).name] || [];
+      for (const s of subs) {
+        const h = remapHexForName(s), i = h ? poolLc.indexOf(h.toLowerCase()) : -1;
+        if (i >= 0) { chosen = pool[i]; break; }
+      }
+      if (!chosen) chosen = pool[0];
+    }
+    map[si] = chosen; use(chosen);
+  });
   return si => (si in map) ? map[si] : palHex[0];
 }
 
@@ -2209,16 +2273,37 @@ function polesHTMLForCard(palIdx, patIdx, el, fill = 0.88, scale = 1, recolor = 
   return `<div class="poles-wrap">${buildPolesFromPattern(palIdx, patIdx, [], D, recolor, palHexOverride)}</div>`;
 }
 
-function goTo(id) {
+/* Navigation history stack — records every screen the user visits (except the
+   landing page) so the back button returns to the *previous* screen rather than
+   a hardcoded destination. Cleared whenever the user lands back on 'land'. */
+let navHistory = [];
+
+function goTo(id, record=true) {
+  // Push the screen we're leaving so back can return to it (never push landing).
+  if (record) {
+    const current = document.querySelector('.screen.active');
+    if (current) {
+      const curId = current.id.replace(/^s-/, '');
+      if (curId !== 'land' && curId !== id) navHistory.push(curId);
+    }
+  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el = document.getElementById('s-'+id);
   if (el) el.classList.add('active');
   window.scrollTo(0,0);
+  if (id==='land')      navHistory = [];   // reaching landing resets history
   if (id==='land')      initLanding();
   if (id==='e-palette') initChoosePalette();
   if (id==='e-style')   initChooseStyle();
   if (id==='custom-palette') initCustomPalette();
   if (id==='cust')      initCustomiser();
+}
+
+/* Back button — pop the last visited screen and return to it (falling back to
+   the landing page). record=false so the pop itself isn't re-recorded. */
+function goBack() {
+  const prev = navHistory.pop() || 'land';
+  goTo(prev, false);
 }
 
 /* entry flow state.
